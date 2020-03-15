@@ -10,6 +10,7 @@ import numeral from 'numeral'
 import * as Charts from 'react-chartjs-2'
 
 import { useAsync, useReducer, useAsyncAction, useClock } from './async'
+import { Storage } from './storage'
 
 const defaultQuery = sqlFormatter.format(`
 	SELECT
@@ -64,7 +65,7 @@ function App() {
 
 				if (!prev.id) {
 					queryList = [...queryList, { id, name }]
-					localStorage.setItem('query:' + id, prev.query)
+					Storage.set('query:' + id, prev.query)
 				} else {
 					queryList.forEach(query => {
 						if (query.id === id) {
@@ -73,7 +74,7 @@ function App() {
 					})
 				}
 
-				localStorage.setItem('query-list', JSON.stringify(queryList))
+				Storage.set('query-list', JSON.stringify(queryList))
 
 				return {
 					id,
@@ -104,7 +105,7 @@ function App() {
 				return {
 					id,
 					name: query.name,
-					query: localStorage.getItem('query:' + id),
+					query: Storage.get('query:' + id),
 					queryList,
 				}
 			},
@@ -112,7 +113,7 @@ function App() {
 		{
 			name: '',
 			query: defaultQuery,
-			queryList: JSON.parse(localStorage.getItem('query-list')) || [],
+			queryList: JSON.parse(Storage.get('query-list')) || [],
 		},
 	)
 
