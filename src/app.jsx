@@ -84,7 +84,9 @@ function App() {
 				}
 			},
 			update: ({ id, name, queryList }, { query }) => {
-				localStorage.setItem('query:' + id, query)
+				if (id) {
+					Storage.set('query:' + id, query)
+				}
 				return {
 					id,
 					name,
