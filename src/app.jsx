@@ -74,7 +74,7 @@ function App() {
 					})
 				}
 
-				Storage.set('query-list', JSON.stringify(queryList))
+				Storage.set('query-list', queryList)
 
 				return {
 					id,
@@ -115,7 +115,7 @@ function App() {
 		{
 			name: '',
 			query: defaultQuery,
-			queryList: JSON.parse(Storage.get('query-list')) || [],
+			queryList: Storage.get('query-list') || [],
 		},
 	)
 
