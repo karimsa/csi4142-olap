@@ -1,0 +1,32 @@
+{
+	"main": "bootstrap.js",
+	"scripts": {
+		"start": "concurrently --names parcel,electron -k 'parcel serve --public-url ./ --target=node src/index.html' 'electron .'"
+	},
+	"dependencies": {
+		"@karimsa/boa": "^0.1.0",
+		"bootstrap": "^4.4.1",
+		"chart.js": "^2.9.3",
+		"electron": "^8.1.1",
+		"jquery": "^3.4.1",
+		"parcel": "^1.12.4",
+		"pg": "^7.18.2",
+		"react": "^16.13.0",
+		"react-dom": "^16.13.0",
+		"sql-formatter": "^2.3.3"
+	},
+	"devDependencies": {
+		"babel-eslint": "^10.1.0",
+		"concurrently": "^5.1.0",
+		"eslint": "^6.8.0",
+		"eslint-config-prettier": "^6.10.0",
+		"eslint-plugin-import": "^2.20.1",
+		"eslint-plugin-node": "^11.0.0",
+		"eslint-plugin-prettier": "^3.1.0",
+		"eslint-plugin-promise": "^4.2.1",
+		"eslint-plugin-react": "^7.19.0",
+		"eslint-plugin-standard": "^4.0.1",
+		"prettier": "^1.19.1",
+		"sass": "^1.26.3"
+	}
+}
