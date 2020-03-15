@@ -15,10 +15,7 @@ export function useReducer(reducer, initialState) {
 			objectReducer.bind(null, reducer),
 			initialState,
 		)
-		return [
-			state,
-			(type, action) => dispatch({ type, ...action }),
-		]
+		return [state, (type, action) => dispatch({ type, ...action })]
 	}
 
 	const [state, setState] = useState(initialState)
@@ -37,12 +34,18 @@ export function useAsyncAction(fn, deps) {
 		(state, action) => {
 			switch (action.type) {
 				case 'FETCH':
-					if (state.status === 'inprogress') {
-						throw new Error(
-							`Cannot re-fetch async action that is already inprogress`,
-						)
+					{
+						const promise = state[kPromise]
+						if (promise && promise.cancel) {
+							promise.cancel()
+						}
+						// if (state.status === 'inprogress') {
+						// 	throw new Error(
+						// 		`Cannot re-fetch async action that is already inprogress`,
+						// 	)
+						// }
+						setAsyncArgs(action.args)
 					}
-					setAsyncArgs(action.args)
 					return {
 						status: 'inprogress',
 						result: state.result,
@@ -147,4 +150,19 @@ export function useAsync(fn, deps) {
 		actions.fetch()
 	}
 	return state
+}
+
+export function useAsyncActions(handlers) {
+	return useAsyncAction(function(action, ...args) {
+		return handlers[action].apply(this, args)
+	})
+}
+
+export function useClock(frequency = 16) {
+	const [_, setClock] = useState()
+	useEffect(() => {
+		const timer = setTimeout(() => setClock(Date.now()), frequency)
+		return () => clearTimeout(timer)
+	})
+	return Date.now()
 }

@@ -9,9 +9,11 @@
 		"chart.js": "^2.9.3",
 		"electron": "^8.1.1",
 		"jquery": "^3.4.1",
+		"numeral": "^2.0.6",
 		"parcel": "^1.12.4",
 		"pg": "^7.18.2",
 		"react": "^16.13.0",
+		"react-chartjs-2": "^2.9.0",
 		"react-dom": "^16.13.0",
 		"sql-formatter": "^2.3.3"
 	},

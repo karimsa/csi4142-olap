@@ -1,15 +1,22 @@
-import { Buffer } from 'buffer'
-
 import $ from 'jquery'
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom'
+import { v4 as uuid } from 'uuid'
 import sqlFormatter from 'sql-formatter'
 import { Config } from '@karimsa/boa'
 import { Pool as PostgresClient } from 'pg'
-import { Chart } from 'chart.js'
 import ms from 'ms'
+import numeral from 'numeral'
+import * as Charts from 'react-chartjs-2'
 
-import { useAsync, useReducer } from './async'
+import { useAsync, useReducer, useAsyncAction, useClock } from './async'
+
+const defaultQuery = sqlFormatter.format(`
+	SELECT
+		'line' as type,
+		1 as x,
+		1 as y
+`)
 
 function findSubPlan(type, plan) {
 	if (plan['Node Type'] === type) {
@@ -17,6 +24,14 @@ function findSubPlan(type, plan) {
 	}
 	if (plan.Plan) {
 		return findSubPlan(type, plan.Plan)
+	}
+	if (plan.Plans) {
+		for (const subPlan of plan.Plans) {
+			const match = findSubPlan(type, subPlan)
+			if (match) {
+				return match
+			}
+		}
 	}
 }
 
@@ -31,63 +46,75 @@ function App() {
 			database: 'group_8',
 			host: 'www.eecs.uottawa.ca',
 			port: 15432,
+			query_timeout: 5000,
 		})
 		await pg.query(`SELECT 1`)
 
 		return pg
 	})
 
-	const [{ name: queryName, query }, queryDispatch] = useReducer(
+	const [
+		{ id: selectedQueryID, name: queryName, query, queryList, queryUpdatedAt },
+		queryDispatch,
+	] = useReducer(
 		{
 			rename: (prev, { name }) => {
-				const id = Buffer.from(name).toString('hex')
+				let queryList = prev.queryList
+				const id = prev.id || uuid()
 
-				if (prev.id) {
-					localStorage.removeItem('query:' + prev.id)
+				if (!prev.id) {
+					queryList = [...queryList, { id, name }]
+					localStorage.setItem('query:' + id, prev.query)
+				} else {
+					queryList.forEach(query => {
+						if (query.id === id) {
+							query.name = name
+						}
+					})
 				}
-				localStorage.setItem('query:' + id, prev.query)
+
+				localStorage.setItem('query-list', JSON.stringify(queryList))
 
 				return {
 					id,
 					name,
 					query: prev.query,
+					queryList,
 				}
 			},
-			update: ({ id, name }, { query }) => {
+			update: ({ id, name, queryList }, { query }) => {
 				localStorage.setItem('query:' + id, query)
 				return {
 					id,
 					name,
 					query,
+					queryList,
+					queryUpdatedAt: Date.now(),
+				}
+			},
+			select: (prev, { id }) => {
+				if (!id) {
+					return {
+						name: '',
+						query: defaultQuery,
+						queryList,
+					}
+				}
+				const query = prev.queryList.find(query => query.id === id)
+				return {
+					id,
+					name: query.name,
+					query: localStorage.getItem('query:' + id),
+					queryList,
 				}
 			},
 		},
 		{
 			name: '',
-			query: sqlFormatter.format(`
-			SELECT
-				'line' as type,
-				1 as x,
-				1 as y
-		`),
+			query: defaultQuery,
+			queryList: JSON.parse(localStorage.getItem('query-list')) || [],
 		},
 	)
-
-	useEffect(() => {
-		if (queryName.prev) {
-			localStorage.removeItem('query:' + Buffer.from(queryName).toString('hex'))
-		}
-		localStorage.setItem(
-			'query:' + Buffer.from(queryName).toString('hex'),
-			query,
-		)
-	}, [queryName])
-	useEffect(() => {
-		localStorage.setItem(
-			'query:' + Buffer.from(queryName).toString('hex'),
-			query,
-		)
-	}, [query])
 
 	const cardRef = React.createRef()
 	useEffect(() => {
@@ -102,82 +129,116 @@ function App() {
 	}, [cardRef.current])
 
 	const canvasRef = React.createRef()
-	const chartDataState = useAsync(async () => {
-		if (pgClientState.result && cardRef.current && canvasRef.current) {
-			const queryStart = Date.now()
-			const { rows } = await pgClientState.result.query(
-				query.includes('LIMIT ') ? query : query + ' LIMIT 100',
+	const [chartDataState, updateChart] = useAsyncAction(async () => {
+		const queryStart = Date.now()
+		const {
+			rows: [
+				{
+					'QUERY PLAN': [{ Plan: winningPlan }],
+				},
+			],
+		} = await pgClientState.result.query(`EXPLAIN (FORMAT JSON) ${query}`)
+		console.warn(winningPlan)
+
+		const seqScanSize =
+			findSubPlan('Seq Scan', winningPlan) && winningPlan['Plan Rows']
+		if (seqScanSize >= 1e3) {
+			throw new Error(
+				`The result of this query is too large to display. ${numeral(
+					seqScanSize,
+				).format('0,0')} rows have been matched, but only 1000 are supported.`,
 			)
-			const {
-				rows: [
+		}
+
+		const memSortSize = (findSubPlan('Sort', winningPlan) || {})['Plan Rows']
+		if (memSortSize >= 1e3) {
+			throw new Error(
+				`This query causes an in-memory sort of ${numeral(memSortSize).format(
+					'0,0',
+				)} rows on the column${
+					findSubPlan('Sort', winningPlan)['Sort Key'].length === 1 ? '' : 's'
+				} "${findSubPlan('Sort', winningPlan)['Sort Key'].join(
+					', ',
+				)}". You can create an index or avoid the sort.`,
+			)
+		}
+
+		const { rows } = await pgClientState.result.query(query)
+		const { type, x_label: xLabel, y_label: yLabel } = rows[0] || {
+			type: 'line',
+		}
+		const isTable =
+			!type || rows[0]?.x === undefined || rows[0]?.y === undefined
+
+		return {
+			duration: Date.now() - queryStart,
+			planSuggestion: findSubPlan('Seq Scan', winningPlan)
+				? `Your query causes a table scan on "${
+						findSubPlan('Seq Scan', winningPlan)['Relation Name']
+				  }". Create an index instead.`
+				: findSubPlan('Sort', winningPlan)
+				? `Your query triggers an in-memory sort on the column${
+						findSubPlan('Sort', winningPlan)['Sort Key'].length === 1 ? '' : 's'
+				  } "${findSubPlan('Sort', winningPlan)['Sort Key'].join(', ')}"`
+				: null,
+			isTable,
+			rows,
+			timeOfLastUpdate: Date.now(),
+			chartType: type,
+			data: {
+				labels: type === 'bar' ? rows.map(row => row.x) : [],
+				datasets: [
 					{
-						'QUERY PLAN': [winningPlan],
+						data: rows.map(row =>
+							type === 'bar' ? row.y : { x: row.x, y: row.y },
+						),
 					},
 				],
-			} = await pgClientState.result.query(`EXPLAIN (FORMAT JSON) ${query}`)
-
-			console.warn(winningPlan)
-
-			const { type, x_label: xLabel, y_label: yLabel } = rows[0] || {
-				type: 'line',
-			}
-			const isTable =
-				!type || rows[0]?.x === undefined || rows[0]?.y === undefined
-
-			if (!isTable) {
-				const chart = new Chart(canvasRef.current.getContext('2d'), {
-					type,
-					data: {
-						datasets: [
-							{
-								data: rows.map(row => ({ x: row.x, y: row.y })),
+			},
+			options: {
+				responsive: true,
+				scales: {
+					xAxes: [
+						{
+							display: true,
+							scaleLabel: {
+								display: Boolean(xLabel),
+								labelString: xLabel,
 							},
-						],
-					},
-					options: {
-						scales: {
-							xAxes: [
-								{
-									display: true,
-									scaleLabel: {
-										display: Boolean(xLabel),
-										labelString: xLabel,
-									},
-								},
-							],
-							yAxes: [
-								{
-									display: true,
-									scaleLabel: {
-										display: Boolean(yLabel),
-										labelString: yLabel,
-									},
-								},
-							],
 						},
-						legend: {
-							display: false,
+					],
+					yAxes: [
+						{
+							display: true,
+							scaleLabel: {
+								display: Boolean(yLabel),
+								labelString: yLabel,
+							},
 						},
-					},
-				})
-				chart.render()
-			}
-
-			return {
-				duration: Date.now() - queryStart,
-				planSuggestion: findSubPlan('Seq Scan', winningPlan)
-					? `Your query causes a table scan on "${
-							findSubPlan('Seq Scan', winningPlan)['Relation Name']
-					  }". Create an index instead.`
-					: null,
-				isTable,
-				rows,
-			}
+					],
+				},
+				legend: {
+					display: false,
+				},
+			},
 		}
-	}, [query, pgClientState.result, cardRef.current, canvasRef.current])
+	})
+	useEffect(() => {
+		if (query) {
+			updateChart.fetch()
+		}
+	}, [query, canvasRef.current, cardRef.current])
+	useEffect(() => {
+		if (chartDataState.status === 'idle') {
+			const timer = setInterval(() => updateChart.fetch(), 1e2)
+			return () => clearInterval(timer)
+		}
+	}, [canvasRef.current, cardRef.current, chartDataState])
 
+	const now = useClock()
 	const isLoading = pgClientState.status === 'loading'
-	const error = pgClientState.error
+	const error =
+		pgClientState.error || (now - queryUpdatedAt >= 1e3 && chartDataState.error)
 
 	return (
 		<div className="d-flex align-items-center justify-content-center h-100 w-100">
@@ -207,12 +268,30 @@ function App() {
 							<div
 								className="card border-top border-primary shadow w-100 mb-4"
 								ref={cardRef}
-								style={{ height: '40vh' }}
+								style={{ height: '60vh' }}
 							>
 								<div className="card-body table-responsive">
+									{/* <canvas
+										ref={canvasRef}
+										className={chartDataState.result?.isTable ? 'd-none' : ''}
+									/> */}
+
+									{chartDataState.result?.chartType === 'line' && (
+										<Charts.Line
+											data={chartDataState.result.data}
+											options={chartDataState.result.options}
+										/>
+									)}
+									{chartDataState.result?.chartType === 'bar' && (
+										<Charts.Bar
+											data={chartDataState.result.data}
+											options={chartDataState.result.options}
+										/>
+									)}
+
 									{/* World's slowest table? Quite possibly. */}
-									{chartDataState.result?.isTable ? (
-										chartDataState.result.rows.length === 0 ? (
+									{chartDataState.result?.isTable &&
+										(chartDataState.result.rows.length === 0 ? (
 											<p className="mb-0">Query returned empty result</p>
 										) : (
 											<React.Fragment>
@@ -234,7 +313,7 @@ function App() {
 																	{Object.keys(
 																		chartDataState.result.rows[0],
 																	).map(key => (
-																		<td key={key}>{row[key]}</td>
+																		<td key={key}>{String(row[key])}</td>
 																	))}
 																</tr>
 															))}
@@ -248,57 +327,66 @@ function App() {
 													</caption>
 												)}
 											</React.Fragment>
-										)
-									) : (
-										<canvas ref={canvasRef} />
-									)}
+										))}
 								</div>
 							</div>
 
-							{(function() {
-								if (
-									!chartDataState.result ||
-									chartDataState.status === 'loading'
-								) {
+							{!chartDataState.error &&
+								(function() {
+									if (
+										!chartDataState.result ||
+										chartDataState.status === 'loading'
+									) {
+										return (
+											<div className="alert alert-primary">
+												Fetching new data ...
+											</div>
+										)
+									}
+
+									if (chartDataState.error) {
+										return (
+											<div className="alert alert-danger" role="alert">
+												{String(chartDataState.error)}
+											</div>
+										)
+									}
+
+									if (chartDataState.result.planSuggestion) {
+										return (
+											<div className="alert alert-warning" role="alert">
+												<strong>Warning: </strong>
+												{String(chartDataState.result.planSuggestion)}
+											</div>
+										)
+									}
+
 									return (
-										<div className="alert alert-primary">
-											Fetching new data ...
+										<div className="alert alert-success">
+											<strong>All good!</strong> Query ran in{' '}
+											{ms(chartDataState.result.duration)}.
 										</div>
 									)
-								}
-
-								if (chartDataState.error) {
-									return (
-										<div className="alert alert-danger" role="alert">
-											{String(chartDataState.error)}
-										</div>
-									)
-								}
-
-								if (chartDataState.result.planSuggestion) {
-									return (
-										<div className="alert alert-warning" role="alert">
-											<strong>Warning: </strong>
-											{String(chartDataState.result.planSuggestion)}
-										</div>
-									)
-								}
-
-								return (
-									<div className="alert alert-success">
-										<strong>All good!</strong> Query ran in{' '}
-										{ms(chartDataState.result.duration)}.
-									</div>
-								)
-							})()}
+								})()}
 						</div>
 					</div>
 
 					<div className="col-4">
 						<form>
 							<div className="form-group">
-								<select className="form-control">
-									<option>(New query)</option>
+								<select
+									className="form-control"
+									value={selectedQueryID}
+									onChange={evt =>
+										queryDispatch('select', { id: evt.target.value })
+									}
+								>
+									<option value="">(New query)</option>
+									{queryList.map(query => (
+										<option key={query.id} value={query.id}>
+											{query.name}
+										</option>
+									))}
 								</select>
 							</div>
 
@@ -318,16 +406,19 @@ function App() {
 								<textarea
 									className="form-control mb-2"
 									value={query}
-									onChange={evt => {
-										let value = evt.target.value
-										const which = evt.nativeEvent.which
-
-										if (which === ','.charCodeAt(0)) {
-											value = sqlFormatter.format(value)
+									onKeyUp={evt => {
+										if (evt.which === 13 && evt.metaKey) {
+											updateChart.fetch()
 										}
-
-										queryDispatch('update', { query: value })
 									}}
+									onChange={evt =>
+										queryDispatch('update', { query: evt.target.value })
+									}
+									onBlur={() =>
+										queryDispatch('update', {
+											query: sqlFormatter.format(query),
+										})
+									}
 									rows="10"
 									disabled={isLoading}
 								/>
