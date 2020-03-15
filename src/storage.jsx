@@ -19,8 +19,6 @@ export const Storage = {
 		if (!memory.has(key)) {
 			memory.set(key, node)
 			persisted.push(node)
-		} else if (node.value === value) {
-			return
 		}
 
 		// Slow, but reliable + readable
