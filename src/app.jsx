@@ -40,14 +40,20 @@ function App() {
 	const pgClientState = useAsync(async () => {
 		const pgUser = Config.string('PgUser')
 		const pgPass = Config.string('PgPass')
+		const pgHost = Config.string('PgHost', 'www.eecs.uottawa.ca')
+		const pgPort = Config.int('PgPort', 15432)
 
+		console.warn(
+			`Creating pg client to postgres://${pgUser}:****@${pgHost}:${pgPort}/group_8`,
+		)
 		const pg = new PostgresClient({
 			user: pgUser,
 			password: pgPass,
 			database: 'group_8',
-			host: 'www.eecs.uottawa.ca',
-			port: 15432,
+			host: pgHost,
+			port: pgPort,
 			query_timeout: 5000,
+			max: 2,
 		})
 		await pg.query(`SELECT 1`)
 
