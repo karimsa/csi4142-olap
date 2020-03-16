@@ -33,6 +33,10 @@
 			{
 				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
 				"name": "(DrillDown) Total crimes in a city in a year"
+			},
+			{
+				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
+				"name": "(Window) Average crime rate per neighbourhood"
 			}
 		]
 	},
@@ -59,5 +63,9 @@
 	{
 		"key": "query:f7434fe0-2a39-4717-8eac-6385091eb954",
 		"value": "SELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }"
+	},
+	{
+		"key": "query:ce17a628-0e92-4b38-94f4-171e76e5c2dd",
+		"value": "SELECT\n  COUNT(*) OVER (PARTITION BY neighbourhood) AS neighbourhood_crime_rate,\n  *\nFROM\n  cross_join\nWHERE\n  neighbourhood != ''\nLIMIT\n  10"
 	}
 ]
