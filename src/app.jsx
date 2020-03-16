@@ -10,7 +10,7 @@ import numeral from 'numeral'
 import * as Charts from 'react-chartjs-2'
 import PropTypes from 'prop-types'
 
-import { useAsync, useReducer, useAsyncAction, useClock } from './async'
+import { useReducer, useAsyncAction, useClock } from './async'
 import { Storage } from './storage'
 
 const defaultQuery = sqlFormatter.format(`
@@ -91,30 +91,25 @@ function cleanQuery(query, params) {
 	}
 }
 
+const pgUser = Config.string('PgUser')
+const pgPass = Config.string('PgPass')
+const pgHost = Config.string('PgHost', 'www.eecs.uottawa.ca')
+const pgPort = Config.int('PgPort', 15432)
+
+console.warn(
+	`Creating pg client to postgres://${pgUser}:****@${pgHost}:${pgPort}/group_8`,
+)
+const pg = new PostgresClient({
+	user: pgUser,
+	password: pgPass,
+	database: 'group_8',
+	host: pgHost,
+	port: pgPort,
+	query_timeout: 5000,
+	max: 2,
+})
+
 function App() {
-	const pgClientState = useAsync(async () => {
-		const pgUser = Config.string('PgUser')
-		const pgPass = Config.string('PgPass')
-		const pgHost = Config.string('PgHost', 'www.eecs.uottawa.ca')
-		const pgPort = Config.int('PgPort', 15432)
-
-		console.warn(
-			`Creating pg client to postgres://${pgUser}:****@${pgHost}:${pgPort}/group_8`,
-		)
-		const pg = new PostgresClient({
-			user: pgUser,
-			password: pgPass,
-			database: 'group_8',
-			host: pgHost,
-			port: pgPort,
-			query_timeout: 5000,
-			max: 2,
-		})
-		await pg.query(`SELECT 1`)
-
-		return pg
-	})
-
 	const [
 		{
 			id: selectedQueryID,
@@ -225,7 +220,7 @@ function App() {
 	}, [cardRef.current])
 
 	const canvasRef = React.createRef()
-	const [chartDataState, updateChart] = useAsyncAction(async () => {
+	const [chartDataState, updateChart] = useAsyncAction(function*() {
 		const queryStart = Date.now()
 		const runnableQuery = cleanQuery(query, queryParams)
 		const {
@@ -234,7 +229,7 @@ function App() {
 					'QUERY PLAN': [{ Plan: winningPlan }],
 				},
 			],
-		} = await pgClientState.result.query({
+		} = yield pg.query({
 			text: `EXPLAIN (FORMAT JSON) ${runnableQuery.text}`,
 			values: runnableQuery.values,
 		})
@@ -263,7 +258,7 @@ function App() {
 			)
 		}
 
-		const { rows } = await pgClientState.result.query(runnableQuery)
+		const { rows } = yield pg.query(runnableQuery)
 		const { type, x_label: xLabel, y_label: yLabel } = rows[0] || {
 			type: 'line',
 		}
@@ -339,10 +334,8 @@ function App() {
 	}, [canvasRef.current, cardRef.current, chartDataState])
 
 	const now = useClock()
-	const isLoading = pgClientState.status === 'loading'
 	const error =
-		pgClientState.error ||
-		((!queryUpdatedAt || now - queryUpdatedAt >= 1e3) && chartDataState.error)
+		(!queryUpdatedAt || now - queryUpdatedAt >= 1e3) && chartDataState.error
 
 	return (
 		<div className="d-flex align-items-center justify-content-center h-100 w-100">
@@ -366,9 +359,6 @@ function App() {
 				<div className="row">
 					<div className="col d-flex align-items-center justify-content-center">
 						<div className="w-100">
-							{isLoading && (
-								<div className="spinner-border spinner-border-lg text-primary" />
-							)}
 							<div
 								className="card border-top border-primary shadow w-100 mb-4"
 								ref={cardRef}
@@ -516,7 +506,6 @@ function App() {
 										})
 									}
 									rows="10"
-									disabled={isLoading}
 								/>
 							</div>
 

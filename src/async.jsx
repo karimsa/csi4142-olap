@@ -9,6 +9,31 @@ function objectReducer(actions, state, action) {
 	return actions[action.type](state, action)
 }
 
+export function co(gen) {
+	return function(...args) {
+		let canceled = false
+		const promise = (async function() {
+			let it = gen(...args)
+			let lastResult
+
+			/* eslint no-unmodified-loop-condition: off */
+			while (!canceled) {
+				const { value, done } = it.next(lastResult)
+				lastResult = await value
+				if (done) {
+					break
+				}
+			}
+
+			return lastResult
+		})()
+		promise.cancel = () => {
+			canceled = true
+		}
+		return promise
+	}
+}
+
 export function useReducer(reducer, initialState) {
 	if (typeof reducer === 'object') {
 		const [state, dispatch] = useReducer(
@@ -29,6 +54,10 @@ export function useReducer(reducer, initialState) {
 }
 
 export function useAsyncAction(fn, deps) {
+	if (fn.constructor.name === 'GeneratorFunction') {
+		return useAsyncAction(co(fn), deps)
+	}
+
 	const [asyncArgs, setAsyncArgs] = useState()
 	const [state, dispatch] = useReducer(
 		(state, action) => {
