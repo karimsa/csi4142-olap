@@ -1,7 +1,7 @@
 [
 	{
 		"key": "query:11ad5a25-c929-41e0-856a-cda996ab820a",
-		"value": "SELECT\n  'bar' as type,\n  category as x,\n  'Crime category' as x_label,\n  COUNT(*) / 1000 as y,\n  'Number of events (in thousands)' as y_label\nFROM\n  crimes\nGROUP BY\n  category\nORDER BY\n  category"
+		"value": "SELECT\n  'bar' as type,\n  category as x,\n  'Crime category' as x_label,\n  COUNT(*) / 1000 as y,\n  'Number of events (in thousands)' as y_label\nFROM\n  crimes\nGROUP BY\n  category"
 	},
 	{
 		"key": "query-list",
@@ -50,7 +50,7 @@
 	},
 	{
 		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
-		"value": "SELECT\n  'bar' as type,\n  locations.neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  crimes,\n  locations\nWHERE\n  crimes.location_key = locations.key\n  AND locations.city = { city | Denver }\n  AND crimes.category = { category | Larceny }\nGROUP BY\n  locations.neighbourhood"
+		"value": "SELECT\n  'bar' as type,\n  neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\n  AND category = { category | Larceny }\nGROUP BY\n  neighbourhood"
 	},
 	{
 		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
