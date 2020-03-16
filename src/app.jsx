@@ -145,19 +145,20 @@ function App() {
 				Storage.set('query-list', queryList)
 
 				return {
+					...prev,
 					id,
 					name,
 					query: prev.query,
 					queryList,
 				}
 			},
-			update: ({ id, name, queryList, queryParams }, { query }) => {
+			update: ({ id, queryParams, ...prev }, { query }) => {
 				if (id) {
 					Storage.set('query:' + id, query)
 				}
 				return {
+					...prev,
 					id,
-					name,
 					query,
 					queryParams: extractVariables(query).map(param => ({
 						name: param.name,
@@ -166,7 +167,6 @@ function App() {
 							param.defaultValue ??
 							'',
 					})),
-					queryList,
 					queryUpdatedAt: Date.now(),
 				}
 			},
@@ -176,6 +176,7 @@ function App() {
 						name: '',
 						query: defaultQuery,
 						queryList,
+						queryParams: [],
 					}
 				}
 				const query = prev.queryList.find(query => query.id === id)
