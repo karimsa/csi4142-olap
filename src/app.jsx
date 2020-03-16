@@ -8,6 +8,7 @@ import { Pool as PostgresClient } from 'pg'
 import ms from 'ms'
 import numeral from 'numeral'
 import * as Charts from 'react-chartjs-2'
+import PropTypes from 'prop-types'
 
 import { useAsync, useReducer, useAsyncAction, useClock } from './async'
 import { Storage } from './storage'
@@ -18,6 +19,33 @@ const defaultQuery = sqlFormatter.format(`
 		1 as x,
 		1 as y
 `)
+
+const chartComponents = {
+	line: Charts.Line,
+	bar: Charts.Bar,
+	pie: Charts.Pie,
+	noop: () => null,
+}
+
+const chartColors = [
+	'rgb(255, 99, 132)',
+	'rgb(255, 159, 64)',
+	'rgb(255, 205, 86)',
+	'rgb(75, 192, 192)',
+	'rgb(54, 162, 235)',
+	'rgb(153, 102, 255)',
+	'rgb(201, 203, 207)',
+]
+
+function Chart({ type, data, options }) {
+	const Component = chartComponents[type] || chartComponents.noop
+	return <Component data={data} options={options} />
+}
+Chart.propTypes = {
+	type: PropTypes.string,
+	data: PropTypes.object,
+	options: PropTypes.object,
+}
 
 function findSubPlan(type, plan) {
 	if (plan['Node Type'] === type) {
@@ -195,11 +223,14 @@ function App() {
 			timeOfLastUpdate: Date.now(),
 			chartType: type,
 			data: {
-				labels: type === 'bar' ? rows.map(row => row.x) : [],
+				labels: type === 'line' ? [] : rows.map(row => row.x),
 				datasets: [
 					{
+						backgroundColor: rows.map(
+							(_, index) => chartColors[index % chartColors.length],
+						),
 						data: rows.map(row =>
-							type === 'bar' ? row.y : { x: row.x, y: row.y },
+							type === 'line' ? { x: row.x, y: row.y } : row.y,
 						),
 					},
 				],
@@ -209,7 +240,7 @@ function App() {
 				scales: {
 					xAxes: [
 						{
-							display: true,
+							display: type !== 'pie',
 							scaleLabel: {
 								display: Boolean(xLabel),
 								labelString: xLabel,
@@ -218,7 +249,7 @@ function App() {
 					],
 					yAxes: [
 						{
-							display: true,
+							display: type !== 'pie',
 							scaleLabel: {
 								display: Boolean(yLabel),
 								labelString: yLabel,
@@ -280,23 +311,11 @@ function App() {
 								style={{ height: '60vh' }}
 							>
 								<div className="card-body table-responsive">
-									{/* <canvas
-										ref={canvasRef}
-										className={chartDataState.result?.isTable ? 'd-none' : ''}
-									/> */}
-
-									{chartDataState.result?.chartType === 'line' && (
-										<Charts.Line
-											data={chartDataState.result.data}
-											options={chartDataState.result.options}
-										/>
-									)}
-									{chartDataState.result?.chartType === 'bar' && (
-										<Charts.Bar
-											data={chartDataState.result.data}
-											options={chartDataState.result.options}
-										/>
-									)}
+									<Chart
+										type={chartDataState.result?.chartType}
+										data={chartDataState.result?.data}
+										options={chartDataState.result?.options}
+									/>
 
 									{/* World's slowest table? Quite possibly. */}
 									{chartDataState.result?.isTable &&
