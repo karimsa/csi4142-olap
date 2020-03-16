@@ -64,6 +64,31 @@ function findSubPlan(type, plan) {
 	}
 }
 
+function extractVariables(query) {
+	const matches = []
+	for (const [_, word] of query.matchAll(/{\s*(.*?)\s*}/g)) {
+		matches.push(word)
+	}
+	return matches
+}
+
+function cleanQuery(query, params) {
+	query = query
+		.split(/\n/g)
+		.filter(line => line.trim()[0] !== '-')
+		.join('\n')
+	for (let i = 0; i < params.length; i++) {
+		query = query.replace(
+			new RegExp('{\\s*' + params[i].name + '\\s*}'),
+			'$' + (1 + i),
+		)
+	}
+	return {
+		text: query,
+		values: params.map(p => p.value),
+	}
+}
+
 function App() {
 	const pgClientState = useAsync(async () => {
 		const pgUser = Config.string('PgUser')
@@ -89,7 +114,14 @@ function App() {
 	})
 
 	const [
-		{ id: selectedQueryID, name: queryName, query, queryList, queryUpdatedAt },
+		{
+			id: selectedQueryID,
+			name: queryName,
+			query,
+			queryParams,
+			queryList,
+			queryUpdatedAt,
+		},
 		queryDispatch,
 	] = useReducer(
 		{
@@ -117,7 +149,7 @@ function App() {
 					queryList,
 				}
 			},
-			update: ({ id, name, queryList }, { query }) => {
+			update: ({ id, name, queryList, queryParams }, { query }) => {
 				if (id) {
 					Storage.set('query:' + id, query)
 				}
@@ -125,6 +157,10 @@ function App() {
 					id,
 					name,
 					query,
+					queryParams: extractVariables(query).map(param => ({
+						name: param,
+						value: queryParams.find(p => p.name === param)?.value ?? '',
+					})),
 					queryList,
 					queryUpdatedAt: Date.now(),
 				}
@@ -138,11 +174,27 @@ function App() {
 					}
 				}
 				const query = prev.queryList.find(query => query.id === id)
+				const queryText = Storage.get('query:' + id)
 				return {
 					id,
 					name: query.name,
-					query: Storage.get('query:' + id),
+					query: queryText,
+					queryParams: extractVariables(queryText).map(param => ({
+						name: param,
+						value: '',
+					})),
 					queryList,
+				}
+			},
+			updateParam: (prev, { param, value }) => {
+				return {
+					...prev,
+					queryParams: prev.queryParams.map(p => {
+						if (p.name === param) {
+							return { name: param, value }
+						}
+						return p
+					}),
 				}
 			},
 		},
@@ -150,6 +202,7 @@ function App() {
 			name: '',
 			query: defaultQuery,
 			queryList: Storage.get('query-list') || [],
+			queryParams: [],
 		},
 	)
 
@@ -168,13 +221,17 @@ function App() {
 	const canvasRef = React.createRef()
 	const [chartDataState, updateChart] = useAsyncAction(async () => {
 		const queryStart = Date.now()
+		const runnableQuery = cleanQuery(query, queryParams)
 		const {
 			rows: [
 				{
 					'QUERY PLAN': [{ Plan: winningPlan }],
 				},
 			],
-		} = await pgClientState.result.query(`EXPLAIN (FORMAT JSON) ${query}`)
+		} = await pgClientState.result.query({
+			text: `EXPLAIN (FORMAT JSON) ${runnableQuery.text}`,
+			values: runnableQuery.values,
+		})
 		console.warn(winningPlan)
 
 		const seqScanSize =
@@ -188,7 +245,7 @@ function App() {
 		}
 
 		const memSortSize = (findSubPlan('Sort', winningPlan) || {})['Plan Rows']
-		if (memSortSize >= 1e3) {
+		if (memSortSize >= 1e4) {
 			throw new Error(
 				`This query causes an in-memory sort of ${numeral(memSortSize).format(
 					'0,0',
@@ -200,7 +257,7 @@ function App() {
 			)
 		}
 
-		const { rows } = await pgClientState.result.query(query)
+		const { rows } = await pgClientState.result.query(runnableQuery)
 		const { type, x_label: xLabel, y_label: yLabel } = rows[0] || {
 			type: 'line',
 		}
@@ -258,7 +315,7 @@ function App() {
 					],
 				},
 				legend: {
-					display: false,
+					display: type === 'pie',
 				},
 			},
 		}
@@ -267,7 +324,7 @@ function App() {
 		if (query) {
 			updateChart.fetch()
 		}
-	}, [query, canvasRef.current, cardRef.current])
+	}, [query, queryParams, canvasRef.current, cardRef.current])
 	useEffect(() => {
 		if (chartDataState.status === 'idle') {
 			const timer = setInterval(() => updateChart.fetch(), 1e2)
@@ -311,11 +368,13 @@ function App() {
 								style={{ height: '60vh' }}
 							>
 								<div className="card-body table-responsive">
-									<Chart
-										type={chartDataState.result?.chartType}
-										data={chartDataState.result?.data}
-										options={chartDataState.result?.options}
-									/>
+									{!chartDataState.result?.isTable && (
+										<Chart
+											type={chartDataState.result?.chartType}
+											data={chartDataState.result?.data}
+											options={chartDataState.result?.options}
+										/>
+									)}
 
 									{/* World's slowest table? Quite possibly. */}
 									{chartDataState.result?.isTable &&
@@ -451,6 +510,24 @@ function App() {
 									disabled={isLoading}
 								/>
 							</div>
+
+							{queryParams.length > 0 && <p>Parameters</p>}
+							{queryParams.map(param => (
+								<div className="form-group" key={param.name}>
+									<label>{param.name}</label>
+									<input
+										type="text"
+										className="form-control"
+										value={param.value}
+										onChange={evt =>
+											queryDispatch('updateParam', {
+												param: param.name,
+												value: evt.target.value,
+											})
+										}
+									/>
+								</div>
+							))}
 						</form>
 					</div>
 				</div>
