@@ -50,7 +50,7 @@
 	},
 	{
 		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
-		"value": "SELECT\n  'bar' as type,\n  neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\n  AND category = { category | Larceny }\nGROUP BY\n  neighbourhood"
+		"value": "SELECT\n  *\nFROM\n  (\n    SELECT\n      'bar' as type,\n      neighbourhood as x,\n      'Neighbourhood' as x_label,\n      COUNT(*) :: float / 1000 as y,\n      '# of crimes (in thousands)' as y_label\n    FROM\n      cross_join\n    WHERE\n      city = { city | Denver }\n      AND category = { category | Larceny }\n    GROUP BY\n      neighbourhood\n  ) AS r\nWHERE\n  r.y >= { count threshold | 0.8 }\nORDER BY\n  r.y DESC"
 	},
 	{
 		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
