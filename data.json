@@ -25,6 +25,10 @@
 			{
 				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
 				"name": "Neighbourhoods in Denver with Highest Theft (Iceberg)"
+			},
+			{
+				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
+				"name": "Monthly crime rate by neighbourhood (Windowing)"
 			}
 		]
 	},
@@ -43,5 +47,9 @@
 	{
 		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
 		"value": "SELECT\n  'bar' as type,\n  locations.neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  crimes,\n  locations\nWHERE\n  crimes.location_key = locations.key\n  AND locations.city = { city | Denver }\n  AND crimes.category = { category | Larceny }\nGROUP BY\n  locations.neighbourhood"
+	},
+	{
+		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
+		"value": "SELECT\n  'bar' as type,\n  AVG(count) as y,\n  neighbourhood as x,\n  'Neighbourhood' as x_label,\n  'Average monthly crime rate' as y_label\nFROM(\n    SELECT\n      COUNT(*),\n      month,\n      neighbourhood\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n    GROUP BY\n      (neighbourhood, month)\n  ) AS r\nGROUP BY\n  neighbourhood"
 	}
 ]
