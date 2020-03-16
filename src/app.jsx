@@ -367,7 +367,13 @@ function App() {
 								ref={cardRef}
 								style={{ height: '60vh' }}
 							>
-								<div className="card-body table-responsive d-flex align-items-center justify-content-center">
+								<div
+									className={`card-body table-responsive d-flex ${
+										!chartDataState.result?.isTable
+											? 'align-items-center justify-content-center'
+											: ''
+									}`}
+								>
 									{!chartDataState.result?.isTable && (
 										<Chart
 											type={chartDataState.result?.chartType}
