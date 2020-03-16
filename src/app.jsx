@@ -77,7 +77,7 @@ function extractVariables(query) {
 function cleanQuery(query, params) {
 	query = query
 		.split(/\n/g)
-		.filter(line => line.trim()[0] !== '-')
+		.filter(line => !line.trim()[0].startsWith('--'))
 		.join('\n')
 	for (let i = 0; i < params.length; i++) {
 		query = query.replace(
