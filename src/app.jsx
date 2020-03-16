@@ -374,7 +374,7 @@ function App() {
 								ref={cardRef}
 								style={{ height: '60vh' }}
 							>
-								<div className="card-body table-responsive">
+								<div className="card-body table-responsive d-flex align-items-center">
 									{!chartDataState.result?.isTable && (
 										<Chart
 											type={chartDataState.result?.chartType}
@@ -386,9 +386,11 @@ function App() {
 									{/* World's slowest table? Quite possibly. */}
 									{chartDataState.result?.isTable &&
 										(chartDataState.result.rows.length === 0 ? (
-											<p className="mb-0">Query returned empty result</p>
+											<p className="mb-0 text-center">
+												Query returned empty result
+											</p>
 										) : (
-											<React.Fragment>
+											<div>
 												<table className="table table-striped mb-0">
 													<thead className="thead-light">
 														<tr>
@@ -415,12 +417,12 @@ function App() {
 												</table>
 
 												{chartDataState.result.rows.length > 10 && (
-													<caption className="text-muted d-block pl-2">
+													<p className="text-muted d-block pl-2">
 														({chartDataState.result.rows.length - 10} additional
 														rows hidden)
-													</caption>
+													</p>
 												)}
-											</React.Fragment>
+											</div>
 										))}
 								</div>
 							</div>
