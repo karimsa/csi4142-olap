@@ -8,31 +8,31 @@
 		"value": [
 			{
 				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
-				"name": "Crime count by category (RollUp)"
+				"name": "(RollUp) Crime count by category"
 			},
 			{
 				"id": "dd3acddb-b1b4-4e30-ae31-805083d45a4b",
-				"name": "Crime count by month (RollUp)"
+				"name": "(RollUp) Crime count by month"
 			},
 			{
 				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
-				"name": "Crimes by date (RollUp)"
+				"name": "(RollUp) Crimes by date"
 			},
 			{
 				"id": "debe32fa-8976-47e6-84f4-f39a322cb51c",
-				"name": "Crime per city in March 2016 (Slice)"
+				"name": "(Slice) Crime per city in March 2016"
 			},
 			{
 				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
-				"name": "Neighbourhoods in Denver with Highest Theft (Iceberg)"
+				"name": "(Iceberg) Neighbourhoods in Denver with Highest Theft"
 			},
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
-				"name": "Monthly crime rate by neighbourhood (Windowing)"
+				"name": "(Windowing) Monthly crime rate by neighbourhood"
 			},
 			{
 				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
-				"name": "Total crimes in a city in a year (DrillDown)"
+				"name": "(DrillDown) Total crimes in a city in a year"
 			}
 		]
 	},
