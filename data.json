@@ -8,11 +8,11 @@
 		"value": [
 			{
 				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
-				"name": "Crime count by category"
+				"name": "Crime count by category (RollUp)"
 			},
 			{
 				"id": "dd3acddb-b1b4-4e30-ae31-805083d45a4b",
-				"name": "Crime count by month"
+				"name": "Crime count by month (RollUp)"
 			},
 			{
 				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
@@ -20,7 +20,7 @@
 			},
 			{
 				"id": "debe32fa-8976-47e6-84f4-f39a322cb51c",
-				"name": "Crime per city in Mar2016 (Slice)"
+				"name": "Crime per city in March 2016 (Slice)"
 			},
 			{
 				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
@@ -29,6 +29,10 @@
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
 				"name": "Monthly crime rate by neighbourhood (Windowing)"
+			},
+			{
+				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
+				"name": "Total crimes in a city in a year (DrillDown)"
 			}
 		]
 	},
@@ -42,7 +46,7 @@
 	},
 	{
 		"key": "query:debe32fa-8976-47e6-84f4-f39a322cb51c",
-		"value": "SELECT\n  MIN(locations.city) AS city,\n  crimes.id\nFROM\n  crimes,\n  dates,\n  locations\nWHERE\n  dates.month = 2\n  AND dates.year = 2016\n  AND crimes.start_date_key = dates.key\n  AND locations.key = crimes.location_key\nGROUP BY\n  locations.city\nLIMIT\n  1"
+		"value": "SELECT\n  'pie' as type,\n  COUNT(*) as y,\n  '# of crimes' as y_label,\n  city as x,\n  'City' as x_label\nFROM\n  cross_join\nWHERE\n  month = { month | 2 }\n  AND year = { year | 2016 }\nGROUP BY\n  city"
 	},
 	{
 		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
@@ -51,5 +55,9 @@
 	{
 		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
 		"value": "SELECT\n  'bar' as type,\n  AVG(count) as y,\n  neighbourhood as x,\n  'Neighbourhood' as x_label,\n  'Average monthly crime rate' as y_label\nFROM(\n    SELECT\n      COUNT(*),\n      month,\n      neighbourhood\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n    GROUP BY\n      (neighbourhood, month)\n  ) AS r\nGROUP BY\n  neighbourhood"
+	},
+	{
+		"key": "query:f7434fe0-2a39-4717-8eac-6385091eb954",
+		"value": "SELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }"
 	}
 ]
