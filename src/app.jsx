@@ -66,8 +66,10 @@ function findSubPlan(type, plan) {
 
 function extractVariables(query) {
 	const matches = []
-	for (const [_, word] of query.matchAll(/{\s*(.*?)\s*}/g)) {
-		matches.push(word)
+	for (const [_, name, __, defaultValue] of query.matchAll(
+		/{\s*(.*?)\s*(\|\s*(.*?))?\s*}/g,
+	)) {
+		matches.push({ name, defaultValue })
 	}
 	return matches
 }
@@ -79,7 +81,7 @@ function cleanQuery(query, params) {
 		.join('\n')
 	for (let i = 0; i < params.length; i++) {
 		query = query.replace(
-			new RegExp('{\\s*' + params[i].name + '\\s*}'),
+			new RegExp('{\\s*' + params[i].name + '.*?}'),
 			'$' + (1 + i),
 		)
 	}
@@ -158,8 +160,11 @@ function App() {
 					name,
 					query,
 					queryParams: extractVariables(query).map(param => ({
-						name: param,
-						value: queryParams.find(p => p.name === param)?.value ?? '',
+						name: param.name,
+						value:
+							queryParams.find(p => p.name === param)?.value ??
+							param.defaultValue ??
+							'',
 					})),
 					queryList,
 					queryUpdatedAt: Date.now(),
@@ -180,8 +185,8 @@ function App() {
 					name: query.name,
 					query: queryText,
 					queryParams: extractVariables(queryText).map(param => ({
-						name: param,
-						value: '',
+						name: param.name,
+						value: param.defaultValue ?? '',
 					})),
 					queryList,
 				}
@@ -335,7 +340,8 @@ function App() {
 	const now = useClock()
 	const isLoading = pgClientState.status === 'loading'
 	const error =
-		pgClientState.error || (now - queryUpdatedAt >= 1e3 && chartDataState.error)
+		pgClientState.error ||
+		((!queryUpdatedAt || now - queryUpdatedAt >= 1e3) && chartDataState.error)
 
 	return (
 		<div className="d-flex align-items-center justify-content-center h-100 w-100">
