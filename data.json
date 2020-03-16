@@ -42,6 +42,6 @@
 	},
 	{
 		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
-		"value": "SELECT\n  'bar' as type,\n  locations.neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  crimes,\n  locations\nWHERE\n  crimes.location_key = locations.key\n  AND locations.city = { city }\n  AND crimes.category = { category }\nGROUP BY\n  locations.neighbourhood"
+		"value": "SELECT\n  'bar' as type,\n  locations.neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  crimes,\n  locations\nWHERE\n  crimes.location_key = locations.key\n  AND locations.city = { city | Denver }\n  AND crimes.category = { category | Larceny }\nGROUP BY\n  locations.neighbourhood"
 	}
 ]
