@@ -9,7 +9,39 @@
 			{
 				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
 				"name": "Crime count by category"
+			},
+			{
+				"id": "dd3acddb-b1b4-4e30-ae31-805083d45a4b",
+				"name": "Crime count by month"
+			},
+			{
+				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
+				"name": "Crimes by date (RollUp)"
+			},
+			{
+				"id": "debe32fa-8976-47e6-84f4-f39a322cb51c",
+				"name": "Crime per city in Mar2016 (Slice)"
+			},
+			{
+				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
+				"name": "Neighbourhoods in Denver with Highest Theft (Iceberg)"
 			}
 		]
+	},
+	{
+		"key": "query:dd3acddb-b1b4-4e30-ae31-805083d45a4b",
+		"value": "SELECT\n  'bar' as type,\n  month AS x,\n  COUNT(*) / 1000 as y,\n  'Month (Jan = 0, Dec = 11)' as x_label,\n  '# of crimes (in thousands)' as y_label\nFROM\n  crimes,\n  dates\nWHERE\n  crimes.start_date_key = dates.key\nGROUP BY\n  month"
+	},
+	{
+		"key": "query:67dad935-63e4-4b93-8ed6-e588e86b4650",
+		"value": "SELECT\n  dates.year,\n  dates.month,\n  dates.day_of_the_month,\n  COUNT(*)\nFROM\n  crimes,\n  dates\nWHERE\n  crimes.start_date_key = dates.key\nGROUP BY\n  ROLLUP(dates.year, dates.month, dates.day_of_the_month)\nLIMIT\n  10"
+	},
+	{
+		"key": "query:debe32fa-8976-47e6-84f4-f39a322cb51c",
+		"value": "SELECT\n  MIN(locations.city) AS city,\n  crimes.id\nFROM\n  crimes,\n  dates,\n  locations\nWHERE\n  dates.month = 2\n  AND dates.year = 2016\n  AND crimes.start_date_key = dates.key\n  AND locations.key = crimes.location_key\nGROUP BY\n  locations.city\nLIMIT\n  1"
+	},
+	{
+		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
+		"value": "SELECT\n  'bar' as type,\n  locations.neighbourhood as x,\n  'Neighbourhood' as x_label,\n  COUNT(*) as y,\n  '# of crimes' as y_label\nFROM\n  crimes,\n  locations\nWHERE\n  crimes.location_key = locations.key\n  AND locations.city = { city }\n  AND crimes.category = { category }\nGROUP BY\n  locations.neighbourhood"
 	}
 ]

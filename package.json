@@ -8,6 +8,7 @@
 		"bootstrap": "^4.4.1",
 		"chart.js": "^2.9.3",
 		"electron": "^8.1.1",
+		"handlebars": "^4.7.3",
 		"jquery": "^3.4.1",
 		"numeral": "^2.0.6",
 		"parcel": "^1.12.4",
