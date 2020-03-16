@@ -205,7 +205,9 @@ function App() {
 		{
 			name: '',
 			query: defaultQuery,
-			queryList: Storage.get('query-list') || [],
+			queryList: (Storage.get('query-list') || []).sort((a, b) =>
+				a.name >= b.name ? 1 : -1,
+			),
 			queryParams: [],
 		},
 	)
