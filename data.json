@@ -7,6 +7,18 @@
 		"key": "query-list",
 		"value": [
 			{
+				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
+				"name": "(DrillDown) Total crimes in a city in a year"
+			},
+			{
+				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
+				"name": "(Iceberg) Neighbourhoods in Denver with highest theft"
+			},
+			{
+				"id": "6fa6c6fa-ffd6-4dc0-a190-c15dbaa7f1c2",
+				"name": "(Iceberg) Neighbourhoods with most number of severe crimes"
+			},
+			{
 				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
 				"name": "(RollUp) Crime count by category"
 			},
@@ -23,20 +35,12 @@
 				"name": "(Slice) Crime per city in March 2016"
 			},
 			{
-				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
-				"name": "(Iceberg) Neighbourhoods in Denver with Highest Theft"
+				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
+				"name": "(Windowing) Average crime rate per neighbourhood"
 			},
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
 				"name": "(Windowing) Monthly crime rate by neighbourhood"
-			},
-			{
-				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
-				"name": "(DrillDown) Total crimes in a city in a year"
-			},
-			{
-				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
-				"name": "(Window) Average crime rate per neighbourhood"
 			}
 		]
 	},
@@ -67,5 +71,9 @@
 	{
 		"key": "query:ce17a628-0e92-4b38-94f4-171e76e5c2dd",
 		"value": "SELECT\n  COUNT(*) OVER (PARTITION BY neighbourhood) AS neighbourhood_crime_rate,\n  *\nFROM\n  cross_join\nWHERE\n  neighbourhood != ''\nLIMIT\n  10"
+	},
+	{
+		"key": "query:6fa6c6fa-ffd6-4dc0-a190-c15dbaa7f1c2",
+		"value": "SELECT\n  *\nFROM\n  (\n    SELECT\n      'bar' as type,\n      neighbourhood AS x,\n      COUNT(*) :: float / 1000 AS y,\n      '# of crimes (in thousands)' as y_label\n    FROM\n      cross_join\n    WHERE\n      severity > 10\n      AND neighbourhood != ''\n    GROUP BY\n      neighbourhood\n  ) AS r\nWHERE\n  r.y > { count threshold | 1.2 }\nORDER BY\n  r.y DESC"
 	}
 ]
