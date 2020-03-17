@@ -112,6 +112,49 @@ const pg = new PostgresClient({
 	max: 2,
 })
 
+function getQueryKeys(plan) {
+	for (const key in plan) {
+		if (plan.hasOwnProperty(key) && key.endsWith('Key')) {
+			return plan[key]
+		}
+	}
+}
+
+function QueryPlanStage({ plans }) {
+	if (!plans) {
+		return null
+	}
+	return plans.map(
+		(plan, index) =>
+			plan && (
+				<div key={index}>
+					<p className="mb-0">
+						{plan['Node Type']}
+						<span className="badge badge-primary mb-1 ml-2">
+							{numeral(plan['Plan Rows']).format('0,0')} rows
+						</span>
+						{getQueryKeys(plan) && (
+							<span className="badge badge-success ml-2">
+								Keys: {getQueryKeys(plan)}
+							</span>
+						)}
+						{plan['Index Cond'] && (
+							<span className="badge badge-danger ml-2">
+								Filter: {plan['Index Cond']}
+							</span>
+						)}
+					</p>
+					<div className="ml-3">
+						<QueryPlanStage plans={plan.Plans ?? [plan.Plan]} />
+					</div>
+				</div>
+			),
+	)
+}
+QueryPlanStage.propTypes = {
+	plans: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+}
+
 function App() {
 	const [
 		{
@@ -281,6 +324,7 @@ function App() {
 						findSubPlan('Sort', winningPlan)['Sort Key'].length === 1 ? '' : 's'
 				  } "${findSubPlan('Sort', winningPlan)['Sort Key'].join(', ')}"`
 				: null,
+			queryPlan: winningPlan,
 			isTable,
 			rows,
 			timeOfLastUpdate: Date.now(),
@@ -369,7 +413,7 @@ function App() {
 					<div className="col d-flex align-items-center justify-content-center">
 						<div className="w-100">
 							<div
-								className="card border-top border-primary shadow w-100 mb-4"
+								className="card border-top border-primary shadow w-100"
 								ref={cardRef}
 								style={{ height: '60vh' }}
 							>
@@ -431,48 +475,10 @@ function App() {
 										))}
 								</div>
 							</div>
-
-							{!chartDataState.error &&
-								(function() {
-									if (
-										!chartDataState.result ||
-										chartDataState.status === 'loading'
-									) {
-										return (
-											<div className="alert alert-primary">
-												Fetching new data ...
-											</div>
-										)
-									}
-
-									if (chartDataState.error) {
-										return (
-											<div className="alert alert-danger" role="alert">
-												{String(chartDataState.error)}
-											</div>
-										)
-									}
-
-									if (chartDataState.result.planSuggestion) {
-										return (
-											<div className="alert alert-warning" role="alert">
-												<strong>Warning: </strong>
-												{String(chartDataState.result.planSuggestion)}
-											</div>
-										)
-									}
-
-									return (
-										<div className="alert alert-success">
-											<strong>All good!</strong> Query ran in{' '}
-											{ms(chartDataState.result.duration)}.
-										</div>
-									)
-								})()}
 						</div>
 					</div>
 
-					<div className="col-4">
+					<div className="col-3">
 						<form>
 							<div className="form-group">
 								<select
@@ -524,7 +530,9 @@ function App() {
 								/>
 							</div>
 
-							{queryParams.length > 0 && <p>Parameters</p>}
+							{queryParams.length > 0 && (
+								<p className="font-weight-bold">Parameters</p>
+							)}
 							{queryParams.map(param => (
 								<div className="form-group" key={param.name}>
 									<label>{param.name}</label>
@@ -542,6 +550,53 @@ function App() {
 								</div>
 							))}
 						</form>
+					</div>
+
+					<div className="col-4">
+						<div className="card mb-4">
+							<div className="card-body">
+								<p className="font-weight-bold">Query plan</p>
+								<QueryPlanStage plans={[chartDataState.result?.queryPlan]} />
+							</div>
+						</div>
+
+						{!chartDataState.error &&
+							(function() {
+								if (
+									!chartDataState.result ||
+									chartDataState.status === 'loading'
+								) {
+									return (
+										<div className="alert alert-primary">
+											Fetching new data ...
+										</div>
+									)
+								}
+
+								if (chartDataState.error) {
+									return (
+										<div className="alert alert-danger" role="alert">
+											{String(chartDataState.error)}
+										</div>
+									)
+								}
+
+								if (chartDataState.result.planSuggestion) {
+									return (
+										<div className="alert alert-warning" role="alert">
+											<strong>Warning: </strong>
+											{String(chartDataState.result.planSuggestion)}
+										</div>
+									)
+								}
+
+								return (
+									<div className="alert alert-success">
+										<strong>All good!</strong> Query ran in{' '}
+										{ms(chartDataState.result.duration)}.
+									</div>
+								)
+							})()}
 					</div>
 				</div>
 			</div>
