@@ -82,6 +82,6 @@
 	},
 	{
 		"key": "query:497b0608-088e-467d-b99a-8b8be9dca95a",
-		"value": "-- Location dimension is sliced by city\nSELECT\n  'bar' as type,\n  neighbourhood as x,\n  COUNT(*) as y\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\nGROUP by\n  neighbourhood"
+		"value": "-- Location dimension is sliced by city\nSELECT\n  'bar' as type,\n  neighbourhood as x,\n  'Neighbourhoods' as x_label,\n  COUNT(*) :: float / 1000 as y,\n  '# of crimes (in thousands)' as y_label\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\nGROUP by\n  neighbourhood"
 	}
 ]
