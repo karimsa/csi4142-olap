@@ -299,6 +299,10 @@ function App() {
 				],
 			},
 			options: {
+				title: {
+					display: true,
+					text: queryName,
+				},
 				responsive: true,
 				scales: {
 					xAxes: [
