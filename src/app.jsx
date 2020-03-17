@@ -10,8 +10,9 @@ import numeral from 'numeral'
 import * as Charts from 'react-chartjs-2'
 import PropTypes from 'prop-types'
 
-import { useReducer, useAsyncAction, useClock } from './async'
 import { Storage } from './storage'
+import { extractVariables, cleanQuery } from './templates'
+import { useReducer, useAsyncAction, useClock } from './async'
 
 const defaultQuery = sqlFormatter.format(`
 	SELECT
@@ -61,36 +62,6 @@ function findSubPlan(type, plan) {
 				return match
 			}
 		}
-	}
-}
-
-function extractVariables(query) {
-	const matches = []
-	for (const [_, name, __, defaultValue] of query.matchAll(
-		/{\s*(.*?)\s*(\|\s*(.*?))?\s*}/g,
-	)) {
-		matches.push({ name, defaultValue })
-	}
-	return matches
-}
-
-function cleanQuery(query, params) {
-	query = query
-		.split(/\n/g)
-		.filter(line => {
-			line = line.trim()
-			return line && !line[0].startsWith('--')
-		})
-		.join('\n')
-	for (let i = 0; i < params.length; i++) {
-		query = query.replace(
-			new RegExp('{\\s*' + params[i].name + '.*?}'),
-			'$' + (1 + i),
-		)
-	}
-	return {
-		text: query,
-		values: params.map(p => p.value),
 	}
 }
 
