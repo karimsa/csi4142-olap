@@ -7,16 +7,16 @@
 		"key": "query-list",
 		"value": [
 			{
-				"id": "491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
-				"name": "(Combined) 3"
-			},
-			{
 				"id": "e02ce64b-245b-4305-b45d-e47ff66adb8b",
 				"name": "(Combined) 1"
 			},
 			{
 				"id": "1bb91355-c489-4c02-a0f0-ba2179f4309a",
 				"name": "(Combined) 2"
+			},
+			{
+				"id": "491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
+				"name": "(Combined) 3"
 			},
 			{
 				"id": "a370ba27-aaa3-474e-aa4a-7695447bd9bf",
@@ -43,16 +43,16 @@
 				"name": "(DrillDown) Total crimes in a city in a year"
 			},
 			{
-				"id": "7f5ab845-2c20-47be-a73b-6a66f1e6585a",
-				"name": "(Iceberg) 3"
-			},
-			{
 				"id": "2f452229-ece9-4653-a37e-e8c993df91ac",
 				"name": "(Iceberg) Neighbourhoods in Denver with highest theft"
 			},
 			{
 				"id": "6fa6c6fa-ffd6-4dc0-a190-c15dbaa7f1c2",
 				"name": "(Iceberg) Neighbourhoods with most number of severe crimes"
+			},
+			{
+				"id": "7f5ab845-2c20-47be-a73b-6a66f1e6585a",
+				"name": "(Iceberg) Neighbourhoods with the most nighttime crimes"
 			},
 			{
 				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
@@ -150,7 +150,7 @@
 	},
 	{
 		"key": "query:7f5ab845-2c20-47be-a73b-6a66f1e6585a",
-		"value": "SELECT\n  'TODO'"
+		"value": "SELECT\n  *\nFROM\n  (\n    SELECT\n      'bar' as type,\n      neighbourhood as x,\n      'Neighbourhood' as x_label,\n      COUNT(*) :: float / 1000 as y,\n      '# of crimes (in thousands)' as y_label\n    FROM\n      cross_join\n    WHERE\n      is_nighttime = TRUE\n    GROUP BY\n      neighbourhood\n    ORDER BY\n      y DESC\n  ) AS r\nWHERE\n  r.y >= { count threshold | 6 }"
 	},
 	{
 		"key": "query:bcdbb54e-2143-4ad5-bb80-e104a282a812",
