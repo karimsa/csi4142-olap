@@ -1,7 +1,7 @@
 [
 	{
 		"key": "query:11ad5a25-c929-41e0-856a-cda996ab820a",
-		"value": "SELECT\n  'bar' as type,\n  category as x,\n  'Crime category' as x_label,\n  COUNT(*) / 1000 as y,\n  'Number of events (in thousands)' as y_label\nFROM\n  crimes\nGROUP BY\n  category"
+		"value": "SELECT\n  category,\n  type,\n  COUNT(*) as num_crimes\nFROM\n  cross_join\nGROUP BY\n  ROLLUP(category, type)\nLIMIT\n  10"
 	},
 	{
 		"key": "query-list",
@@ -19,16 +19,16 @@
 				"name": "(Iceberg) Neighbourhoods with most number of severe crimes"
 			},
 			{
-				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
-				"name": "(RollUp) Crime count by category"
+				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
+				"name": "(RollUp) Crime severity rolled up by date"
 			},
 			{
 				"id": "dd3acddb-b1b4-4e30-ae31-805083d45a4b",
-				"name": "(RollUp) Crime count by month"
+				"name": "(RollUp) Crime severity rolled up by location"
 			},
 			{
-				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
-				"name": "(RollUp) Crimes by date"
+				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
+				"name": "(RollUp) Crimes rolled up by crime type"
 			},
 			{
 				"id": "debe32fa-8976-47e6-84f4-f39a322cb51c",
@@ -50,11 +50,11 @@
 	},
 	{
 		"key": "query:dd3acddb-b1b4-4e30-ae31-805083d45a4b",
-		"value": "SELECT\n  'bar' as type,\n  month AS x,\n  COUNT(*) / 1000 as y,\n  'Month (Jan = 0, Dec = 11)' as x_label,\n  '# of crimes (in thousands)' as y_label\nFROM\n  crimes,\n  dates\nWHERE\n  crimes.start_date_key = dates.key\nGROUP BY\n  month"
+		"value": "SELECT\n  province,\n  city,\n  neighbourhood,\n  AVG(severity) AS severity\nFROM\n  cross_join\nGROUP BY\n  ROLLUP(province, city, neighbourhood)\nLIMIT\n  10"
 	},
 	{
 		"key": "query:67dad935-63e4-4b93-8ed6-e588e86b4650",
-		"value": "SELECT\n  dates.year,\n  dates.month,\n  dates.day_of_the_month,\n  COUNT(*)\nFROM\n  crimes,\n  dates\nWHERE\n  crimes.start_date_key = dates.key\nGROUP BY\n  ROLLUP(dates.year, dates.month, dates.day_of_the_month)\nLIMIT\n  10"
+		"value": "SELECT\n  year,\n  month,\n  day_of_the_month,\n  AVG(severity) AS severity\nFROM\n  cross_join\nGROUP BY\n  ROLLUP(year, month, day_of_the_month)\nLIMIT\n  10"
 	},
 	{
 		"key": "query:debe32fa-8976-47e6-84f4-f39a322cb51c",
