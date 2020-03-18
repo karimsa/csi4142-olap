@@ -535,7 +535,7 @@ function App() {
 							(function() {
 								if (
 									!chartDataState.result ||
-									chartDataState.status === 'loading'
+									chartDataState.status === 'inprogress'
 								) {
 									return (
 										<div className="alert alert-primary">
