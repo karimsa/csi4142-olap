@@ -79,16 +79,16 @@
 				"name": "(Slice) Crimes per neighbourhood in Denver"
 			},
 			{
-				"id": "3c179df4-9d2a-4c90-8f26-d902eb871d13",
-				"name": "(WINDOW) 1"
-			},
-			{
 				"id": "4e8cebd0-9b0e-42e5-9596-1697a391eb6a",
 				"name": "(WINDOW) 2"
 			},
 			{
 				"id": "5052a4da-f390-408f-ba69-bd54257f0344",
 				"name": "(WINDOW) 3"
+			},
+			{
+				"id": "3c179df4-9d2a-4c90-8f26-d902eb871d13",
+				"name": "(WINDOW) Average severity over neighbourhood"
 			},
 			{
 				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
@@ -162,7 +162,7 @@
 	},
 	{
 		"key": "query:3c179df4-9d2a-4c90-8f26-d902eb871d13",
-		"value": "SELECT\n  'TODO'"
+		"value": "SELECT\n  *,\n  AVG(severity) OVER w AS avg_severity,\n  STDDEV(severity) OVER w AS stddev_severity\nFROM\n  cross_join\nWHERE\n  neighbourhood != '' WINDOW w AS (PARTITION BY neighbourhood)\nLIMIT\n  10"
 	},
 	{
 		"key": "query:4e8cebd0-9b0e-42e5-9596-1697a391eb6a",
