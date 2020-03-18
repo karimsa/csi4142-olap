@@ -96,7 +96,7 @@
 			},
 			{
 				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
-				"name": "(Windowing) Average crime rate per neighbourhood"
+				"name": "(Windowing) Average severity per neighbourhood"
 			},
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
@@ -122,7 +122,7 @@
 	},
 	{
 		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
-		"value": "SELECT\n  'bar' as type,\n  AVG(count) as y,\n  neighbourhood as x,\n  'Neighbourhood' as x_label,\n  'Average monthly crime rate' as y_label\nFROM(\n    SELECT\n      COUNT(*),\n      month,\n      neighbourhood\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n    GROUP BY\n      (neighbourhood, month)\n  ) AS r\nGROUP BY\n  neighbourhood"
+		"value": "SELECT\n  neighbourhood\nFROM\n  cross_join\nGROUP BY\n  neighbourhood\nLIMIT\n  1"
 	},
 	{
 		"key": "query:f7434fe0-2a39-4717-8eac-6385091eb954",
@@ -130,7 +130,7 @@
 	},
 	{
 		"key": "query:ce17a628-0e92-4b38-94f4-171e76e5c2dd",
-		"value": "SELECT\n  COUNT(*) OVER (PARTITION BY neighbourhood) AS neighbourhood_crime_rate,\n  *\nFROM\n  cross_join\nWHERE\n  neighbourhood != ''\nLIMIT\n  10"
+		"value": "SELECT\n  'bar' as type,\n  MIN(avg_neighbourhood_severity) as y,\n  neighbourhood as x\nFROM\n  (\n    -- This is the actual windowing query, it is\n    -- wrapped with a sub-select for visualization purposes\n    SELECT\n      *,\n      AVG(severity) OVER (PARTITION BY neighbourhood) AS avg_neighbourhood_severity\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n  ) AS r\nGROUP BY\n  x\nORDER BY\n  y DESC"
 	},
 	{
 		"key": "query:6fa6c6fa-ffd6-4dc0-a190-c15dbaa7f1c2",
