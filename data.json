@@ -100,7 +100,7 @@
 			},
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
-				"name": "(Windowing) Monthly crime rate by neighbourhood"
+				"name": "(Windowing) Total crimes by neighbourhood"
 			}
 		]
 	},
@@ -122,7 +122,7 @@
 	},
 	{
 		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
-		"value": "SELECT\n  neighbourhood\nFROM\n  cross_join\nGROUP BY\n  neighbourhood\nLIMIT\n  1"
+		"value": "SELECT\n  'bar' as type,\n  neighbourhood AS x,\n  MIN(total_neighbourhood_crimes) AS y\nFROM\n  (\n    -- This is the actual windowing query,\n    -- the surrounding sub-select is for visualization\n    SELECT\n      *,\n      COUNT(*) OVER (PARTITION BY neighbourhood) AS total_neighbourhood_crimes\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n  ) AS r\nGROUP BY\n  x\nORDER BY\n  y DESC\nLIMIT\n  10"
 	},
 	{
 		"key": "query:f7434fe0-2a39-4717-8eac-6385091eb954",
