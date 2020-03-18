@@ -91,12 +91,12 @@
 				"name": "(WINDOW) 3"
 			},
 			{
-				"id": "a1285880-81c8-4930-8153-357620b56e5a",
-				"name": "(Windowing) 3"
-			},
-			{
 				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
 				"name": "(Windowing) Average severity per neighbourhood"
+			},
+			{
+				"id": "a1285880-81c8-4930-8153-357620b56e5a",
+				"name": "(Windowing) Number of traffic accidents by neighbourhood"
 			},
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
@@ -158,7 +158,7 @@
 	},
 	{
 		"key": "query:a1285880-81c8-4930-8153-357620b56e5a",
-		"value": "SELECT\n  'TODO'"
+		"value": "SELECT\n  'bar' as type,\n  neighbourhood AS x,\n  MIN(total_neighbourhood_traffic_crimes) AS y\nFROM\n  (\n    -- This is the actual windowing query,\n    -- the surrounding sub-select is for visualization\n    SELECT\n      *,\n      COUNT(*) FILTER(\n        WHERE\n          is_traffic = TRUE\n      ) OVER (PARTITION BY neighbourhood) AS total_neighbourhood_traffic_crimes\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n  ) AS r\nGROUP BY\n  x\nORDER BY\n  y DESC\nLIMIT\n  10"
 	},
 	{
 		"key": "query:3c179df4-9d2a-4c90-8f26-d902eb871d13",
