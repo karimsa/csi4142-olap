@@ -7,6 +7,30 @@
 		"key": "query-list",
 		"value": [
 			{
+				"id": "e97da668-9e2d-434a-9ad2-0a4f5d1688f8",
+				"name": "(Dice) Subset of a crime type on dates"
+			},
+			{
+				"id": "aa0a68a7-f62a-48a1-ad83-cd7144ec8a96",
+				"name": "(Dice) Subset of crime type of subset of a crime type"
+			},
+			{
+				"id": "b9810023-d477-4b60-9e93-068de8b8118d",
+				"name": "(Dice) Subset of crimes during Dec, Jan, Feb"
+			},
+			{
+				"id": "29773c7b-0287-4d0e-8b69-ac1928e14ce7",
+				"name": "(DrillDown) Total crimes by category of crime"
+			},
+			{
+				"id": "053da5d1-275c-4934-a432-b3a331708add",
+				"name": "(DrillDown) Total crimes by date"
+			},
+			{
+				"id": "ce773e74-ef34-4216-8c49-403a58181b1a",
+				"name": "(DrillDown) Total crimes by neighbourhood"
+			},
+			{
 				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
 				"name": "(DrillDown) Total crimes in a city in a year"
 			},
@@ -83,5 +107,29 @@
 	{
 		"key": "query:497b0608-088e-467d-b99a-8b8be9dca95a",
 		"value": "-- Location dimension is sliced by city\nSELECT\n  'bar' as type,\n  neighbourhood as x,\n  'Neighbourhoods' as x_label,\n  COUNT(*) :: float / 1000 as y,\n  '# of crimes (in thousands)' as y_label\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\nGROUP by\n  neighbourhood"
+	},
+	{
+		"key": "query:ce773e74-ef34-4216-8c49-403a58181b1a",
+		"value": "SELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city,\n  MIN(neighbourhood) as neighbourhood\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }\n  AND neighbourhood = { neighbourhood | marpole }"
+	},
+	{
+		"key": "query:053da5d1-275c-4934-a432-b3a331708add",
+		"value": "--select * from cross_join limit 10\n--11/6/2004/-21\nSELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city,\n  MIN(reported_date_key) as date\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }\n  AND reported_date_key = { reported_date_key | 11 / 6 / 2004 / -21 }"
+	},
+	{
+		"key": "query:29773c7b-0287-4d0e-8b69-ac1928e14ce7",
+		"value": "SELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city,\n  MIN(category) as category\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }\n  AND category = { category | Larceny }"
+	},
+	{
+		"key": "query:b9810023-d477-4b60-9e93-068de8b8118d",
+		"value": "SELECT\n  *,\n  type as type,\n  month AS month\nFROM\n  cross_join\nWHERE\n  month IN (12, 1, 2)\n  AND type ~* 'Burglary|theft'\nLIMIT\n  10 -- replace burglary and theft as any other subcrime type"
+	},
+	{
+		"key": "query:aa0a68a7-f62a-48a1-ad83-cd7144ec8a96",
+		"value": "SELECT\n  *,\n  category as category,\n  type as type,\n  month AS month\nFROM\n  cross_join\nWHERE\n  month IN (12, 1, 2)\n  AND type ~* 'theft-other| bldg'\n  AND category ~* 'Burglary|Larceny'\n  or is_traffic = false\nLIMIT\n  10 -- replace burglary and larceny as any other subcrime type"
+	},
+	{
+		"key": "query:e97da668-9e2d-434a-9ad2-0a4f5d1688f8",
+		"value": "SELECT\n  *,\n  category as category,\n  type as type,\n  month AS month\nFROM\n  cross_join\nWHERE\n  month IN (12, 1, 2)\n  AND type ~* 'theft-other|bldg'\n  AND category ~* 'Burglary|Larceny'\nLIMIT\n  10"
 	}
 ]
