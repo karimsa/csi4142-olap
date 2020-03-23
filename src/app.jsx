@@ -358,8 +358,6 @@ function App() {
 	}, [canvasRef.current, cardRef.current, chartDataState])
 
 	const now = useClock()
-	const error =
-		(!queryUpdatedAt || now - queryUpdatedAt >= 1e3) && chartDataState.error
 
 	return (
 		<div className="d-flex align-items-center justify-content-center h-100 w-100">
@@ -369,16 +367,6 @@ function App() {
 						<h2 className="text-center mb-4">OLAP Dashboard</h2>
 					</div>
 				</div>
-
-				{error && (
-					<div className="row">
-						<div className="col">
-							<div className="alert alert-danger" role="alert">
-								{String(error.message || error)}
-							</div>
-						</div>
-					</div>
-				)}
 
 				<div className="row">
 					<div className="col d-flex align-items-center justify-content-center">
@@ -531,43 +519,45 @@ function App() {
 							</div>
 						</div>
 
-						{!chartDataState.error &&
-							(function() {
-								if (
-									!chartDataState.result ||
-									chartDataState.status === 'loading'
-								) {
-									return (
-										<div className="alert alert-primary">
-											Fetching new data ...
-										</div>
-									)
-								}
+						{(function() {
+							if (
+								!chartDataState.result ||
+								chartDataState.status === 'inprogress'
+							) {
+								return (
+									<div className="alert alert-primary">
+										Fetching new data ...
+									</div>
+								)
+							}
 
-								if (chartDataState.error) {
+							if (chartDataState.error) {
+								if (!queryUpdatedAt || now - queryUpdatedAt >= 1e3) {
 									return (
 										<div className="alert alert-danger" role="alert">
 											{String(chartDataState.error)}
 										</div>
 									)
 								}
+								return null
+							}
 
-								if (chartDataState.result.planSuggestion) {
-									return (
-										<div className="alert alert-warning" role="alert">
-											<strong>Warning: </strong>
-											{String(chartDataState.result.planSuggestion)}
-										</div>
-									)
-								}
-
+							if (chartDataState.result.planSuggestion) {
 								return (
-									<div className="alert alert-success">
-										<strong>All good!</strong> Query ran in{' '}
-										{ms(chartDataState.result.duration)}.
+									<div className="alert alert-warning" role="alert">
+										<strong>Warning: </strong>
+										{String(chartDataState.result.planSuggestion)}
 									</div>
 								)
-							})()}
+							}
+
+							return (
+								<div className="alert alert-success">
+									<strong>All good!</strong> Query ran in{' '}
+									{ms(chartDataState.result.duration)}.
+								</div>
+							)
+						})()}
 					</div>
 				</div>
 			</div>

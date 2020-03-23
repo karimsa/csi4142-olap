@@ -1,7 +1,7 @@
 [
 	{
 		"key": "query:11ad5a25-c929-41e0-856a-cda996ab820a",
-		"value": "SELECT\n  'bar' as type,\n  category as x,\n  'Crime category' as x_label,\n  COUNT(*) / 1000 as y,\n  'Number of events (in thousands)' as y_label\nFROM\n  crimes\nGROUP BY\n  category"
+		"value": "SELECT\n  category,\n  type,\n  COUNT(*) as num_crimes\nFROM\n  cross_join\nGROUP BY\n  ROLLUP(category, type)\nLIMIT\n  10"
 	},
 	{
 		"key": "query-list",
@@ -29,6 +29,38 @@
 			{
 				"id": "ce773e74-ef34-4216-8c49-403a58181b1a",
 				"name": "(DrillDown) Total crimes by neighbourhood"
+      },
+      {
+				"id": "e02ce64b-245b-4305-b45d-e47ff66adb8b",
+				"name": "(Combined) 1"
+			},
+			{
+				"id": "1bb91355-c489-4c02-a0f0-ba2179f4309a",
+				"name": "(Combined) 2"
+			},
+			{
+				"id": "491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
+				"name": "(Combined) 3"
+			},
+			{
+				"id": "a370ba27-aaa3-474e-aa4a-7695447bd9bf",
+				"name": "(Dice) 1"
+			},
+			{
+				"id": "c865d65b-28b9-479f-af48-a1179a8a3215",
+				"name": "(Dice) 2"
+			},
+			{
+				"id": "3f75b7ed-3de6-4d28-ac0c-c8d70a23d926",
+				"name": "(Dice) 3"
+			},
+			{
+				"id": "4cff10a8-cda8-4cc3-ba1b-c00e9f7a58eb",
+				"name": "(DrillDown) 2"
+			},
+			{
+				"id": "8d47438a-cc49-4402-88b2-bbe3f74085a2",
+				"name": "(DrillDown) 3"
 			},
 			{
 				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
@@ -43,16 +75,24 @@
 				"name": "(Iceberg) Neighbourhoods with most number of severe crimes"
 			},
 			{
-				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
-				"name": "(RollUp) Crime count by category"
-			},
-			{
-				"id": "dd3acddb-b1b4-4e30-ae31-805083d45a4b",
-				"name": "(RollUp) Crime count by month"
+				"id": "7f5ab845-2c20-47be-a73b-6a66f1e6585a",
+				"name": "(Iceberg) Neighbourhoods with the most nighttime crimes"
 			},
 			{
 				"id": "67dad935-63e4-4b93-8ed6-e588e86b4650",
-				"name": "(RollUp) Crimes by date"
+				"name": "(RollUp) Crime severity rolled up by date"
+			},
+			{
+				"id": "dd3acddb-b1b4-4e30-ae31-805083d45a4b",
+				"name": "(RollUp) Crime severity rolled up by location"
+			},
+			{
+				"id": "11ad5a25-c929-41e0-856a-cda996ab820a",
+				"name": "(RollUp) Crimes rolled up by crime type"
+			},
+			{
+				"id": "bcdbb54e-2143-4ad5-bb80-e104a282a812",
+				"name": "(Slice) 3"
 			},
 			{
 				"id": "debe32fa-8976-47e6-84f4-f39a322cb51c",
@@ -63,22 +103,38 @@
 				"name": "(Slice) Crimes per neighbourhood in Denver"
 			},
 			{
+				"id": "5052a4da-f390-408f-ba69-bd54257f0344",
+				"name": "(WINDOW) 3"
+			},
+			{
+				"id": "3c179df4-9d2a-4c90-8f26-d902eb871d13",
+				"name": "(WINDOW) Average severity over neighbourhood"
+			},
+			{
+				"id": "4e8cebd0-9b0e-42e5-9596-1697a391eb6a",
+				"name": "(WINDOW) Total number of crimes in prev/next month"
+			},
+			{
 				"id": "ce17a628-0e92-4b38-94f4-171e76e5c2dd",
-				"name": "(Windowing) Average crime rate per neighbourhood"
+				"name": "(Windowing) Average severity per neighbourhood"
+			},
+			{
+				"id": "a1285880-81c8-4930-8153-357620b56e5a",
+				"name": "(Windowing) Number of traffic accidents by neighbourhood"
 			},
 			{
 				"id": "db771f77-707f-413f-a9c6-560fc71a92b6",
-				"name": "(Windowing) Monthly crime rate by neighbourhood"
+				"name": "(Windowing) Total crimes by neighbourhood"
 			}
 		]
 	},
 	{
 		"key": "query:dd3acddb-b1b4-4e30-ae31-805083d45a4b",
-		"value": "SELECT\n  'bar' as type,\n  month AS x,\n  COUNT(*) / 1000 as y,\n  'Month (Jan = 0, Dec = 11)' as x_label,\n  '# of crimes (in thousands)' as y_label\nFROM\n  crimes,\n  dates\nWHERE\n  crimes.start_date_key = dates.key\nGROUP BY\n  month"
+		"value": "SELECT\n  province,\n  city,\n  neighbourhood,\n  AVG(severity) AS severity\nFROM\n  cross_join\nGROUP BY\n  ROLLUP(province, city, neighbourhood)\nLIMIT\n  10"
 	},
 	{
 		"key": "query:67dad935-63e4-4b93-8ed6-e588e86b4650",
-		"value": "SELECT\n  dates.year,\n  dates.month,\n  dates.day_of_the_month,\n  COUNT(*)\nFROM\n  crimes,\n  dates\nWHERE\n  crimes.start_date_key = dates.key\nGROUP BY\n  ROLLUP(dates.year, dates.month, dates.day_of_the_month)\nLIMIT\n  10"
+		"value": "SELECT\n  year,\n  month,\n  day_of_the_month,\n  AVG(severity) AS severity\nFROM\n  cross_join\nGROUP BY\n  ROLLUP(year, month, day_of_the_month)\nLIMIT\n  10"
 	},
 	{
 		"key": "query:debe32fa-8976-47e6-84f4-f39a322cb51c",
@@ -90,7 +146,7 @@
 	},
 	{
 		"key": "query:db771f77-707f-413f-a9c6-560fc71a92b6",
-		"value": "SELECT\n  'bar' as type,\n  AVG(count) as y,\n  neighbourhood as x,\n  'Neighbourhood' as x_label,\n  'Average monthly crime rate' as y_label\nFROM(\n    SELECT\n      COUNT(*),\n      month,\n      neighbourhood\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n    GROUP BY\n      (neighbourhood, month)\n  ) AS r\nGROUP BY\n  neighbourhood"
+		"value": "SELECT\n  'bar' as type,\n  neighbourhood AS x,\n  MIN(total_neighbourhood_crimes) AS y\nFROM\n  (\n    -- This is the actual windowing query,\n    -- the surrounding sub-select is for visualization\n    SELECT\n      *,\n      COUNT(*) OVER (PARTITION BY neighbourhood) AS total_neighbourhood_crimes\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n  ) AS r\nGROUP BY\n  x\nORDER BY\n  y DESC\nLIMIT\n  10"
 	},
 	{
 		"key": "query:f7434fe0-2a39-4717-8eac-6385091eb954",
@@ -98,7 +154,7 @@
 	},
 	{
 		"key": "query:ce17a628-0e92-4b38-94f4-171e76e5c2dd",
-		"value": "SELECT\n  COUNT(*) OVER (PARTITION BY neighbourhood) AS neighbourhood_crime_rate,\n  *\nFROM\n  cross_join\nWHERE\n  neighbourhood != ''\nLIMIT\n  10"
+		"value": "SELECT\n  'bar' as type,\n  MIN(avg_neighbourhood_severity) as y,\n  neighbourhood as x\nFROM\n  (\n    -- This is the actual windowing query, it is\n    -- wrapped with a sub-select for visualization purposes\n    SELECT\n      *,\n      AVG(severity) OVER (PARTITION BY neighbourhood) AS avg_neighbourhood_severity\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n  ) AS r\nGROUP BY\n  x\nORDER BY\n  y DESC"
 	},
 	{
 		"key": "query:6fa6c6fa-ffd6-4dc0-a190-c15dbaa7f1c2",
@@ -131,5 +187,61 @@
 	{
 		"key": "query:e97da668-9e2d-434a-9ad2-0a4f5d1688f8",
 		"value": "SELECT\n  *,\n  category as category,\n  type as type,\n  month AS month\nFROM\n  cross_join\nWHERE\n  month IN (12, 1, 2)\n  AND type ~* 'theft-other|bldg'\n  AND category ~* 'Burglary|Larceny'\nLIMIT\n  10"
+  },
+  {
+		"key": "query:4cff10a8-cda8-4cc3-ba1b-c00e9f7a58eb",
+		"value": "SELECT\n  'TODO'"
+	},
+	{
+		"key": "query:8d47438a-cc49-4402-88b2-bbe3f74085a2",
+		"value": "SELECT\n  'TODO'"
+	},
+	{
+		"key": "query:7f5ab845-2c20-47be-a73b-6a66f1e6585a",
+		"value": "SELECT\n  *\nFROM\n  (\n    SELECT\n      'bar' as type,\n      neighbourhood as x,\n      'Neighbourhood' as x_label,\n      COUNT(*) :: float / 1000 as y,\n      '# of crimes (in thousands)' as y_label\n    FROM\n      cross_join\n    WHERE\n      is_nighttime = TRUE\n    GROUP BY\n      neighbourhood\n    ORDER BY\n      y DESC\n  ) AS r\nWHERE\n  r.y >= { count threshold | 6 }"
+	},
+	{
+		"key": "query:bcdbb54e-2143-4ad5-bb80-e104a282a812",
+		"value": "SELECT\n  'TODO'"
+	},
+	{
+		"key": "query:a1285880-81c8-4930-8153-357620b56e5a",
+		"value": "SELECT\n  'bar' as type,\n  neighbourhood AS x,\n  MIN(total_neighbourhood_traffic_crimes) AS y\nFROM\n  (\n    -- This is the actual windowing query,\n    -- the surrounding sub-select is for visualization\n    SELECT\n      *,\n      COUNT(*) FILTER(\n        WHERE\n          is_traffic = TRUE\n      ) OVER (PARTITION BY neighbourhood) AS total_neighbourhood_traffic_crimes\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n  ) AS r\nGROUP BY\n  x\nORDER BY\n  y DESC\nLIMIT\n  10"
+	},
+	{
+		"key": "query:3c179df4-9d2a-4c90-8f26-d902eb871d13",
+		"value": "SELECT\n  *,\n  AVG(severity) OVER w AS avg_severity,\n  STDDEV(severity) OVER w AS stddev_severity\nFROM\n  cross_join\nWHERE\n  neighbourhood != '' WINDOW w AS (PARTITION BY neighbourhood)\nLIMIT\n  10"
+	},
+	{
+		"key": "query:4e8cebd0-9b0e-42e5-9596-1697a391eb6a",
+		"value": "SELECT\n  *,\n  LEAD(num_crimes_this_month, -1) OVER w num_crimes_prev_month,\n  LEAD(num_crimes_this_month) OVER w num_crimes_next_month\nFROM\n  (\n    SELECT\n      neighbourhood,\n      month,\n      COUNT(*) AS num_crimes_this_month\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n    GROUP BY\n      (neighbourhood, month)\n  ) AS r WINDOW w AS ()\nLIMIT\n  10"
+	},
+	{
+		"key": "query:5052a4da-f390-408f-ba69-bd54257f0344",
+		"value": "SELECT"
+	},
+	{
+		"key": "query:a370ba27-aaa3-474e-aa4a-7695447bd9bf",
+		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
+	},
+	{
+		"key": "query:c865d65b-28b9-479f-af48-a1179a8a3215",
+		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
+	},
+	{
+		"key": "query:3f75b7ed-3de6-4d28-ac0c-c8d70a23d926",
+		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
+	},
+	{
+		"key": "query:e02ce64b-245b-4305-b45d-e47ff66adb8b",
+		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
+	},
+	{
+		"key": "query:1bb91355-c489-4c02-a0f0-ba2179f4309a",
+		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
+	},
+	{
+		"key": "query:491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
+		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
 	}
 ]
