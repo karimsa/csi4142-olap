@@ -7,6 +7,18 @@
 		"key": "query-list",
 		"value": [
 			{
+				"id": "e02ce64b-245b-4305-b45d-e47ff66adb8b",
+				"name": "(Combined) 1"
+			},
+			{
+				"id": "1bb91355-c489-4c02-a0f0-ba2179f4309a",
+				"name": "(Combined) 2"
+			},
+			{
+				"id": "491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
+				"name": "(Combined) 3"
+			},
+			{
 				"id": "e97da668-9e2d-434a-9ad2-0a4f5d1688f8",
 				"name": "(Dice) Subset of a crime type on dates"
 			},
@@ -23,44 +35,8 @@
 				"name": "(DrillDown) Total crimes by category of crime"
 			},
 			{
-				"id": "053da5d1-275c-4934-a432-b3a331708add",
-				"name": "(DrillDown) Total crimes by date"
-			},
-			{
 				"id": "ce773e74-ef34-4216-8c49-403a58181b1a",
 				"name": "(DrillDown) Total crimes by neighbourhood"
-			},
-			{
-				"id": "e02ce64b-245b-4305-b45d-e47ff66adb8b",
-				"name": "(Combined) 1"
-			},
-			{
-				"id": "1bb91355-c489-4c02-a0f0-ba2179f4309a",
-				"name": "(Combined) 2"
-			},
-			{
-				"id": "491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
-				"name": "(Combined) 3"
-			},
-			{
-				"id": "a370ba27-aaa3-474e-aa4a-7695447bd9bf",
-				"name": "(Dice) 1"
-			},
-			{
-				"id": "c865d65b-28b9-479f-af48-a1179a8a3215",
-				"name": "(Dice) 2"
-			},
-			{
-				"id": "3f75b7ed-3de6-4d28-ac0c-c8d70a23d926",
-				"name": "(Dice) 3"
-			},
-			{
-				"id": "4cff10a8-cda8-4cc3-ba1b-c00e9f7a58eb",
-				"name": "(DrillDown) 2"
-			},
-			{
-				"id": "8d47438a-cc49-4402-88b2-bbe3f74085a2",
-				"name": "(DrillDown) 3"
 			},
 			{
 				"id": "f7434fe0-2a39-4717-8eac-6385091eb954",
@@ -170,7 +146,7 @@
 	},
 	{
 		"key": "query:053da5d1-275c-4934-a432-b3a331708add",
-		"value": "--select * from cross_join limit 10\n--11/6/2004/-21\nSELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city,\n  MIN(reported_date_key) as date\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }\n  AND reported_date_key = { reported_date_key | 11 / 6 / 2004 / -21 }"
+		"value": "SELECT\n  COUNT(*) AS num_crimes,\n  MIN(year) AS year,\n  MIN(city) AS city,\n  MIN(reported_date_key) as date\nFROM\n  cross_join\nWHERE\n  year = { year | 2016 }\n  AND city = { city | Vancouver }\n  AND reported_date_key = { reported_date_key | 11 / 6 / 2004 / -21 }"
 	},
 	{
 		"key": "query:29773c7b-0287-4d0e-8b69-ac1928e14ce7",
