@@ -29,8 +29,8 @@
 			{
 				"id": "ce773e74-ef34-4216-8c49-403a58181b1a",
 				"name": "(DrillDown) Total crimes by neighbourhood"
-      },
-      {
+			},
+			{
 				"id": "e02ce64b-245b-4305-b45d-e47ff66adb8b",
 				"name": "(Combined) 1"
 			},
@@ -187,8 +187,8 @@
 	{
 		"key": "query:e97da668-9e2d-434a-9ad2-0a4f5d1688f8",
 		"value": "SELECT\n  *,\n  category as category,\n  type as type,\n  month AS month\nFROM\n  cross_join\nWHERE\n  month IN (12, 1, 2)\n  AND type ~* 'theft-other|bldg'\n  AND category ~* 'Burglary|Larceny'\nLIMIT\n  10"
-  },
-  {
+	},
+	{
 		"key": "query:4cff10a8-cda8-4cc3-ba1b-c00e9f7a58eb",
 		"value": "SELECT\n  'TODO'"
 	},
