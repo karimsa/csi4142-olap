@@ -22,7 +22,7 @@ function serialize(value) {
 }
 
 fs.writeFileSync(
-	path.resolve(__dirname, 'submission.sql'),
+	path.resolve(__dirname, 'submission', 'queries.sql'),
 	[
 		'-- OLAP Dashboard',
 		'-- Course: CSI4142',
