@@ -485,7 +485,10 @@ function App() {
 											query: sqlFormatter.format(query),
 										})
 									}
-									rows="10"
+									rows={Math.min(
+										15,
+										Math.max(5, 1 + query.split(/\r?\n/g).length),
+									)}
 								/>
 							</div>
 
