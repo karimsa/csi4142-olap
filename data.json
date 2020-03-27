@@ -67,12 +67,12 @@
 				"name": "(RollUp) Crimes rolled up by crime type"
 			},
 			{
-				"id": "bcdbb54e-2143-4ad5-bb80-e104a282a812",
-				"name": "(Slice) 3"
-			},
-			{
 				"id": "debe32fa-8976-47e6-84f4-f39a322cb51c",
 				"name": "(Slice) Crime per city in March 2016"
+			},
+			{
+				"id": "bcdbb54e-2143-4ad5-bb80-e104a282a812",
+				"name": "(Slice) Crime per month in specific neighbourhood"
 			},
 			{
 				"id": "497b0608-088e-467d-b99a-8b8be9dca95a",
@@ -114,7 +114,7 @@
 	},
 	{
 		"key": "query:debe32fa-8976-47e6-84f4-f39a322cb51c",
-		"value": "-- The 'GROUP BY' is added to visualize\n-- the slice\nSELECT\n  'pie' as type,\n  COUNT(*) as y,\n  '# of crimes' as y_label,\n  city as x,\n  'City' as x_label\nFROM\n  cross_join\nWHERE\n  month = { month | 2 }\n  AND year = { year | 2016 }\nGROUP BY\n  city"
+		"value": "-- The 'GROUP BY' is added to visualize\n-- the slice\n-- Slice removes date\nSELECT\n  'pie' as type,\n  COUNT(*) as y,\n  '# of crimes' as y_label,\n  city as x,\n  'City' as x_label\nFROM\n  cross_join\nWHERE\n  month = { month | 2 }\n  AND year = { year | 2016 }\nGROUP BY\n  city"
 	},
 	{
 		"key": "query:2f452229-ece9-4653-a37e-e8c993df91ac",
@@ -138,7 +138,7 @@
 	},
 	{
 		"key": "query:497b0608-088e-467d-b99a-8b8be9dca95a",
-		"value": "-- Location dimension is sliced by city\nSELECT\n  'bar' as type,\n  neighbourhood as x,\n  'Neighbourhoods' as x_label,\n  COUNT(*) :: float / 1000 as y,\n  '# of crimes (in thousands)' as y_label\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\nGROUP by\n  neighbourhood"
+		"value": "-- Slice removes location\nSELECT\n  'bar' as type,\n  neighbourhood as x,\n  'Neighbourhoods' as x_label,\n  COUNT(*) :: float / 1000 as y,\n  '# of crimes (in thousands)' as y_label\nFROM\n  cross_join\nWHERE\n  city = { city | Denver }\nGROUP by\n  neighbourhood"
 	},
 	{
 		"key": "query:ce773e74-ef34-4216-8c49-403a58181b1a",
@@ -178,7 +178,7 @@
 	},
 	{
 		"key": "query:bcdbb54e-2143-4ad5-bb80-e104a282a812",
-		"value": "SELECT\n  'TODO'"
+		"value": "-- GROUP BY used for visualization\n-- Slicing to remove location by limiting neighbourhood\nSELECT\n  'bar' as type,\n  month as x,\n  COUNT(*) as y\nFROM\n  cross_join\nWHERE\n  neighbourhood = { neighbourhood | central business district }\nGROUP BY\n  month"
 	},
 	{
 		"key": "query:a1285880-81c8-4930-8153-357620b56e5a",
