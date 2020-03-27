@@ -7,12 +7,12 @@
 		"key": "query-list",
 		"value": [
 			{
-				"id": "1bb91355-c489-4c02-a0f0-ba2179f4309a",
-				"name": "(Combined) 2"
-			},
-			{
 				"id": "491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
 				"name": "(Combined) Average severity per category in March 2016"
+			},
+			{
+				"id": "1bb91355-c489-4c02-a0f0-ba2179f4309a",
+				"name": "(Combined) Number of most severe crimes in adjacent months"
 			},
 			{
 				"id": "e02ce64b-245b-4305-b45d-e47ff66adb8b",
@@ -214,7 +214,7 @@
 	},
 	{
 		"key": "query:1bb91355-c489-4c02-a0f0-ba2179f4309a",
-		"value": "SELECT\n  'line' as type,\n  1 as x,\n  1 as y"
+		"value": "SELECT\n  *,\n  LEAD(num_crimes_this_month, -1) OVER w num_crimes_prev_month,\n  LEAD(num_crimes_this_month) OVER w num_crimes_next_month\nFROM\n  (\n    SELECT\n      neighbourhood,\n      month,\n      COUNT(*) AS num_crimes_this_month\n    FROM\n      cross_join\n    WHERE\n      neighbourhood != ''\n      AND severity > { min severity | 14 }\n    GROUP BY\n      (neighbourhood, month)\n  ) AS r WINDOW w AS ()\nLIMIT\n  10"
 	},
 	{
 		"key": "query:491d47f6-3b32-4cc5-bc20-f9c7800be8f4",
