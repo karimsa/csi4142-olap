@@ -6,8 +6,8 @@ const path = require('path')
 const sqlFormatter = require('sql-formatter')
 
 require('@babel/register')
-const data = require('./data.json')
-const { extractVariables } = require('./src/templates')
+const data = require('../data.json')
+const { extractVariables } = require('../src/templates')
 const queryList = data.find(row => row.key === 'query-list').value
 
 function serialize(value) {
@@ -22,7 +22,7 @@ function serialize(value) {
 }
 
 fs.writeFileSync(
-	path.resolve(__dirname, 'submission', 'queries.sql'),
+	path.resolve(__dirname, '..', 'submission', 'queries.sql'),
 	[
 		'-- OLAP Dashboard',
 		'-- Course: CSI4142',
