@@ -36,6 +36,7 @@ WHERE
   AND neighbourhood != '' WINDOW w AS (PARTITION BY neighbourhood)
 LIMIT
   10;
+;
 
 -- (Combined) Number of most severe crimes in adjacent months
 -- Windowing used to get adjacent month numbers
@@ -60,6 +61,7 @@ FROM
   ) AS r WINDOW w AS ()
 LIMIT
   10;
+;
 
 -- (Combined) Rollup by date, iceberg latest years
 -- Rolled up by date
@@ -77,6 +79,7 @@ GROUP BY
   ROLLUP(year, month, day_of_the_month)
 LIMIT
   10;
+;
 
 -- (Dice) Subset of a crime type on dates
 SELECT
@@ -92,6 +95,7 @@ WHERE
   AND category ~* 'Burglary|Larceny'
 LIMIT
   10;
+;
 
 -- (Dice) Subset of crime type of subset of a crime type
 SELECT
@@ -108,6 +112,7 @@ WHERE
   or is_traffic = false
 LIMIT
   10 -- replace burglary and larceny as any other subcrime type;
+;
 
 -- (Dice) Subset of crimes during Dec, Jan, Feb
 SELECT
@@ -121,6 +126,7 @@ WHERE
   AND type ~* 'Burglary|theft'
 LIMIT
   10 -- replace burglary and theft as any other subcrime type;
+;
 
 -- (DrillDown) Total crimes by category of crime
 SELECT
@@ -134,6 +140,7 @@ WHERE
   year = 2016
   AND city = 'Vancouver'
   AND category = 'Larceny';
+;
 
 -- (DrillDown) Total crimes by neighbourhood
 SELECT
@@ -147,6 +154,7 @@ WHERE
   year = 2016
   AND city = 'Vancouver'
   AND neighbourhood = 'marpole';
+;
 
 -- (DrillDown) Total crimes in a city in a year
 SELECT
@@ -158,6 +166,7 @@ FROM
 WHERE
   year = 2016
   AND city = 'Vancouver';
+;
 
 -- (Iceberg) Neighbourhoods in Denver with highest theft
 SELECT
@@ -182,6 +191,7 @@ WHERE
   r.y >= 0.8
 ORDER BY
   r.y DESC;
+;
 
 -- (Iceberg) Neighbourhoods with most number of severe crimes
 SELECT
@@ -205,6 +215,7 @@ WHERE
   r.y > 1.2
 ORDER BY
   r.y DESC;
+;
 
 -- (Iceberg) Neighbourhoods with the most nighttime crimes
 SELECT
@@ -228,6 +239,7 @@ FROM
   ) AS r
 WHERE
   r.y >= 6;
+;
 
 -- (RollUp) Crime severity rolled up by date
 SELECT
@@ -241,6 +253,7 @@ GROUP BY
   ROLLUP(year, month, day_of_the_month)
 LIMIT
   10;
+;
 
 -- (RollUp) Crime severity rolled up by location
 SELECT
@@ -254,6 +267,7 @@ GROUP BY
   ROLLUP(province, city, neighbourhood)
 LIMIT
   10;
+;
 
 -- (RollUp) Crimes rolled up by crime type
 SELECT
@@ -266,6 +280,7 @@ GROUP BY
   ROLLUP(category, type)
 LIMIT
   10;
+;
 
 -- (Slice) Crime per city in March 2016
 -- The 'GROUP BY' is added to visualize
@@ -284,6 +299,7 @@ WHERE
   AND year = 2016
 GROUP BY
   city;
+;
 
 -- (Slice) Crime per month in specific neighbourhood
 -- GROUP BY used for visualization
@@ -298,6 +314,7 @@ WHERE
   neighbourhood = 'central business district'
 GROUP BY
   month;
+;
 
 -- (Slice) Crimes per neighbourhood in Denver
 -- Slice removes location
@@ -313,6 +330,7 @@ WHERE
   city = 'Denver'
 GROUP by
   neighbourhood;
+;
 
 -- (WINDOW) Average severity over neighbourhood
 SELECT
@@ -325,6 +343,7 @@ WHERE
   neighbourhood != '' WINDOW w AS (PARTITION BY neighbourhood)
 LIMIT
   10;
+;
 
 -- (WINDOW) Severity stats windowed over category
 SELECT
@@ -336,6 +355,7 @@ FROM
   cross_join WINDOW w AS (PARTITION BY category)
 LIMIT
   10;
+;
 
 -- (WINDOW) Total number of crimes in prev/next month
 SELECT
@@ -357,6 +377,7 @@ FROM
   ) AS r WINDOW w AS ()
 LIMIT
   10;
+;
 
 -- (Windowing) Average severity per neighbourhood
 SELECT
@@ -379,6 +400,7 @@ GROUP BY
   x
 ORDER BY
   y DESC;
+;
 
 -- (Windowing) Number of traffic accidents by neighbourhood
 SELECT
@@ -406,6 +428,7 @@ ORDER BY
   y DESC
 LIMIT
   10;
+;
 
 -- (Windowing) Total crimes by neighbourhood
 SELECT
@@ -430,3 +453,4 @@ ORDER BY
   y DESC
 LIMIT
   10;
+;

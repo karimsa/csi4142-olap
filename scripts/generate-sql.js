@@ -69,8 +69,9 @@ fs.writeFileSync(
 					)
 				}
 
-				return ['', '-- ' + row.name, sqlFormatter.format(query) + ';'].join(
-					'\n',
+				return (
+					['', '-- ' + row.name, sqlFormatter.format(query) + ';'].join('\n') +
+					'\n;'
 				)
 			})
 			.join('\n'),
